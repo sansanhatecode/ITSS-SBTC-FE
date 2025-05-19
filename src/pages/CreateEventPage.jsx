@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import eventService from '../services/eventService';
 
 const CreateEventPage = () => {
   const navigate = useNavigate();
@@ -15,6 +16,7 @@ const CreateEventPage = () => {
   });
   
   const [errors, setErrors] = useState({});
+  const [imageFile, setImageFile] = useState(null);
 
   const studentActivityCategories = [
     'Student Activity',
@@ -29,24 +31,29 @@ const CreateEventPage = () => {
   ];
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
-    
-    // Clear error for this field when user types
-    if (errors[name]) {
-      setErrors({
-        ...errors,
-        [name]: ''
+    const { name, value, files } = e.target;
+    if (name === 'image' && files && files[0]) {
+      setImageFile(files[0]);
+      setFormData({
+        ...formData,
+        image: files[0].name
       });
+      if (errors.image) {
+        setErrors({ ...errors, image: '' });
+      }
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value
+      });
+      if (errors[name]) {
+        setErrors({ ...errors, [name]: '' });
+      }
     }
   };
 
   const validateForm = () => {
     const newErrors = {};
-    
     if (!formData.title.trim()) newErrors.title = 'Title is required';
     if (!formData.date) newErrors.date = 'Date is required';
     if (!formData.time) newErrors.time = 'Time is required';
@@ -56,24 +63,29 @@ const CreateEventPage = () => {
     if (!formData.seats || isNaN(formData.seats) || parseInt(formData.seats) <= 0) {
       newErrors.seats = 'Valid number of seats is required';
     }
-    if (!formData.image.trim()) newErrors.image = 'Image URL is required';
-    
+    if (!imageFile) newErrors.image = 'Image is required';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (validateForm()) {
-      // In a real app, you would save to database here
-      console.log('Form submitted:', formData);
-      
-      // Show success message
+    if (!validateForm()) return;
+    try {
+      let imageUrl = formData.image;
+      if (imageFile) {
+        imageUrl = await eventService.uploadImage(imageFile);
+      }
+      // Tạo object eventData để gửi lên backend
+      const eventData = {
+        ...formData,
+        image: imageUrl
+      };
+      await eventService.createEvent(eventData);
       alert('Event created successfully!');
-      
-      // Redirect to home page
       navigate('/');
+    } catch {
+      alert('Error uploading image or creating event!');
     }
   };
 
@@ -209,21 +221,20 @@ const CreateEventPage = () => {
                 {errors.seats && <p className="mt-1 text-sm text-red-600">{errors.seats}</p>}
               </div>
 
-              {/* Image URL */}
+              {/* Image Upload */}
               <div className="col-span-2">
                 <label htmlFor="image" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Event Image URL*
+                  Event Image*
                 </label>
                 <input
-                  type="text"
+                  type="file"
                   id="image"
                   name="image"
-                  value={formData.image}
+                  accept="image/*"
                   onChange={handleChange}
                   className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
                     errors.image ? 'border-red-500' : 'border-gray-300'
                   }`}
-                  placeholder="https://example.com/image.jpg"
                 />
                 {errors.image && <p className="mt-1 text-sm text-red-600">{errors.image}</p>}
               </div>

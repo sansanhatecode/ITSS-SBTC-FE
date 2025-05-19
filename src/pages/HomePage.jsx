@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import EventList from "../components/EventList";
 import CreateEventModal from "../components/CreateEventModal";
 import FeaturedEvents from "../components/FeaturedEvents";
@@ -11,21 +11,26 @@ const HomePage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [categories, setCategories] = useState([]);
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
   const { mssv } = useMssv();
 
-  const handleEventCreated = () => {
-    // Refresh event list or show success message
-    window.location.reload(); // For now, just reload the page
-  };
-
-  // Fetch available categories from events
-  const fetchCategories = async () => {
+  const fetchEvents = useCallback(async () => {
+    setLoading(true);
     try {
       const response = await eventService.getAllEvents(mssv, 0, 100);
-      console.log("Categories response:", response);
+      setEvents(response?.content || []);
+    } catch (error) {
+      console.error("Failed to fetch events:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [mssv]);
 
+  const fetchCategories = useCallback(async () => {
+    try {
+      const response = await eventService.getAllEvents(mssv, 0, 100);
       if (Array.isArray(response?.content)) {
-        // Extract unique types and remove null/undefined
         const uniqueTypes = [
           ...new Set(
             response.content.map((event) => event?.type).filter((type) => type)
@@ -36,11 +41,17 @@ const HomePage = () => {
     } catch (error) {
       console.error("Failed to fetch categories:", error);
     }
-  };
+  }, [mssv]);
 
   useEffect(() => {
+    fetchEvents();
     fetchCategories();
-  }, [mssv]); // Refetch categories when MSSV changes
+  }, [fetchEvents, fetchCategories]);
+
+  const handleEventCreated = () => {
+    fetchEvents(); // Refresh event list after creating a new event
+    fetchCategories(); // Also refresh categories in case a new type was added
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -84,15 +95,15 @@ const HomePage = () => {
             placeholder="Search events..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 
-                     focus:outline-none focus:ring-2 focus:ring-blue-500 
+            className="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 \
+                     focus:outline-none focus:ring-2 focus:ring-blue-500 \
                      dark:bg-gray-700 dark:text-white"
           />
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 
-                     focus:outline-none focus:ring-2 focus:ring-blue-500 
+            className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 \
+                     focus:outline-none focus:ring-2 focus:ring-blue-500 \
                      dark:bg-gray-700 dark:text-white"
           >
             <option value="">All Categories</option>
@@ -105,7 +116,12 @@ const HomePage = () => {
         </div>
 
         {/* Event List */}
-        <EventList searchTerm={searchTerm} category={selectedCategory} />
+        <EventList
+          searchTerm={searchTerm}
+          category={selectedCategory}
+          events={events}
+          loading={loading}
+        />
       </div>
 
       {/* Create Event Modal */}

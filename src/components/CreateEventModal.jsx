@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "react-toastify";
 import eventService from "../services/eventService";
 
 const EVENT_TYPES = {
@@ -20,6 +21,7 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }) => {
     type: EVENT_TYPES.TECHNOLOGY, // Default to TECHNOLOGY
   });
 
+  const [imageFile, setImageFile] = useState(null);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -45,7 +47,7 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }) => {
     if (!formData.startDate) newErrors.startDate = "Start date is required";
     if (!formData.endDate) newErrors.endDate = "End date is required";
     if (!formData.location.trim()) newErrors.location = "Location is required";
-    if (!formData.image.trim()) newErrors.image = "Image URL is required";
+    if (!imageFile) newErrors.image = "Image is required";
 
     // Validate end date is after start date
     if (
@@ -55,71 +57,71 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }) => {
     ) {
       newErrors.endDate = "End date must be after start date";
     }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-    // Clear error when user types
-    if (errors[name]) {
-      setErrors((prev) => ({
+    const { name, value, files } = e.target;
+    if (name === "image" && files && files[0]) {
+      setImageFile(files[0]);
+      setFormData((prev) => ({ ...prev, image: files[0].name }));
+      if (errors.image) {
+        setErrors((prev) => ({ ...prev, image: "" }));
+      }
+    } else {
+      setFormData((prev) => ({
         ...prev,
-        [name]: "",
+        [name]: value,
       }));
+      if (errors[name]) {
+        setErrors((prev) => ({
+          ...prev,
+          [name]: "",
+        }));
+      }
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateForm()) return;
-
+    const validationErrors = validateForm();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      toast.error("Please fill in all required fields correctly.");
+      return;
+    }
+    setIsSubmitting(true);
     try {
-      setIsSubmitting(true);
-
-      // Format the data before sending
+      let imageUrl = formData.image;
+      if (imageFile) {
+        imageUrl = await eventService.uploadImage(imageFile);
+      }
       const formattedData = {
         ...formData,
+        image: imageUrl,
         startDate: formData.startDate,
         endDate: formData.endDate,
         status: determineEventStatus(formData.startDate, formData.endDate),
         type: formData.type,
       };
-
-      console.log("Sending data:", formattedData); // Debug log
-
-      const response = await eventService.createEvent(formattedData);
-
-      // Add success message
+      await eventService.createEvent(formattedData);
       setErrors({});
-      alert("Event created successfully! The page will reload in 5 seconds.");
-
-      // Delay for 5 seconds before closing and reloading
-      setTimeout(() => {
-        onEventCreated(response);
-        onClose();
-        // Reset form
-        setFormData({
-          name: "",
-          description: "",
-          startDate: "",
-          endDate: "",
-          location: "",
-          image: "",
-          type: EVENT_TYPES.TECHNOLOGY,
-        });
-      }, 5000);
+      toast.success("Event created successfully!");
+      if (onEventCreated) onEventCreated();
+      onClose();
+      setFormData({
+        name: "",
+        description: "",
+        startDate: "",
+        endDate: "",
+        location: "",
+        image: "",
+        type: EVENT_TYPES.TECHNOLOGY,
+      });
+      setImageFile(null);
     } catch (error) {
-      console.error("Failed to create event:", error);
-      setErrors((prev) => ({
-        ...prev,
-        submit: error.response?.data?.message || "Failed to create event",
-      }));
+      toast.error(error.message || "Failed to create event.");
     } finally {
       setIsSubmitting(false);
     }
@@ -128,18 +130,18 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fade-in">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl border border-blue-100 dark:border-gray-700">
+        <div className="flex justify-between items-center mb-8">
+          <h2 className="text-3xl font-extrabold text-blue-700 dark:text-white tracking-wide drop-shadow-lg">
             Create New Event
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            className="text-gray-400 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-300 p-2 rounded-full transition-colors"
           >
             <svg
-              className="w-6 h-6"
+              className="w-7 h-7"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -154,10 +156,10 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }) => {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           {/* Event Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-base font-bold text-blue-700 dark:text-white mb-1">
               Event Name *
             </label>
             <input
@@ -165,9 +167,9 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }) => {
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className={`w-full p-2 border rounded-lg ${
-                errors.name ? "border-red-500" : "border-gray-300"
-              } dark:bg-gray-700 dark:border-gray-600 dark:text-white`}
+              className={`w-full p-3 border-2 rounded-lg text-lg font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-700 dark:border-blue-700 dark:text-white transition-all ${
+                errors.name ? "border-red-500" : "border-blue-200"
+              }`}
               placeholder="Enter event name"
             />
             {errors.name && (
@@ -177,16 +179,16 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }) => {
 
           {/* Event Type */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-base font-bold text-blue-700 dark:text-white mb-1">
               Event Type *
             </label>
             <select
               name="type"
               value={formData.type}
               onChange={handleChange}
-              className={`w-full p-2 border rounded-lg ${
-                errors.type ? "border-red-500" : "border-gray-300"
-              } dark:bg-gray-700 dark:border-gray-600 dark:text-white`}
+              className={`w-full p-3 border-2 rounded-lg text-lg font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-700 dark:border-blue-700 dark:text-white transition-all ${
+                errors.type ? "border-red-500" : "border-blue-200"
+              }`}
             >
               {Object.entries(EVENT_TYPES).map(([key, value]) => (
                 <option key={key} value={value}>
@@ -201,7 +203,7 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }) => {
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-base font-bold text-blue-700 dark:text-white mb-1">
               Description *
             </label>
             <textarea
@@ -209,9 +211,9 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }) => {
               value={formData.description}
               onChange={handleChange}
               rows="4"
-              className={`w-full p-2 border rounded-lg ${
-                errors.description ? "border-red-500" : "border-gray-300"
-              } dark:bg-gray-700 dark:border-gray-600 dark:text-white`}
+              className={`w-full p-3 border-2 rounded-lg text-lg font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-700 dark:border-blue-700 dark:text-white transition-all ${
+                errors.description ? "border-red-500" : "border-blue-200"
+              }`}
               placeholder="Enter event description"
             />
             {errors.description && (
@@ -220,9 +222,9 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }) => {
           </div>
 
           {/* Date and Time */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-base font-bold text-blue-700 dark:text-white mb-1">
                 Start Date *
               </label>
               <input
@@ -230,16 +232,16 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }) => {
                 name="startDate"
                 value={formData.startDate}
                 onChange={handleChange}
-                className={`w-full p-2 border rounded-lg ${
-                  errors.startDate ? "border-red-500" : "border-gray-300"
-                } dark:bg-gray-700 dark:border-gray-600 dark:text-white`}
+                className={`w-full p-3 border-2 rounded-lg text-lg font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-700 dark:border-blue-700 dark:text-white transition-all ${
+                  errors.startDate ? "border-red-500" : "border-blue-200"
+                }`}
               />
               {errors.startDate && (
                 <p className="text-red-500 text-sm mt-1">{errors.startDate}</p>
               )}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-base font-bold text-blue-700 dark:text-white mb-1">
                 End Date *
               </label>
               <input
@@ -247,9 +249,9 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }) => {
                 name="endDate"
                 value={formData.endDate}
                 onChange={handleChange}
-                className={`w-full p-2 border rounded-lg ${
-                  errors.endDate ? "border-red-500" : "border-gray-300"
-                } dark:bg-gray-700 dark:border-gray-600 dark:text-white`}
+                className={`w-full p-3 border-2 rounded-lg text-lg font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-700 dark:border-blue-700 dark:text-white transition-all ${
+                  errors.endDate ? "border-red-500" : "border-blue-200"
+                }`}
               />
               {errors.endDate && (
                 <p className="text-red-500 text-sm mt-1">{errors.endDate}</p>
@@ -259,7 +261,7 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }) => {
 
           {/* Location */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-base font-bold text-blue-700 dark:text-white mb-1">
               Location *
             </label>
             <input
@@ -267,9 +269,9 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }) => {
               name="location"
               value={formData.location}
               onChange={handleChange}
-              className={`w-full p-2 border rounded-lg ${
-                errors.location ? "border-red-500" : "border-gray-300"
-              } dark:bg-gray-700 dark:border-gray-600 dark:text-white`}
+              className={`w-full p-3 border-2 rounded-lg text-lg font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-700 dark:border-blue-700 dark:text-white transition-all ${
+                errors.location ? "border-red-500" : "border-blue-200"
+              }`}
               placeholder="Enter event location"
             />
             {errors.location && (
@@ -277,20 +279,19 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }) => {
             )}
           </div>
 
-          {/* Image URL */}
+          {/* Image Upload */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Image URL *
+            <label className="block text-base font-bold text-blue-700 dark:text-white mb-1">
+              Image *
             </label>
             <input
-              type="text"
+              type="file"
               name="image"
-              value={formData.image}
+              accept="image/*"
               onChange={handleChange}
-              className={`w-full p-2 border rounded-lg ${
-                errors.image ? "border-red-500" : "border-gray-300"
-              } dark:bg-gray-700 dark:border-gray-600 dark:text-white`}
-              placeholder="Enter image URL"
+              className={`w-full p-3 border-2 rounded-lg text-lg font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-700 dark:border-blue-700 dark:text-white transition-all ${
+                errors.image ? "border-red-500" : "border-blue-200"
+              }`}
             />
             {errors.image && (
               <p className="text-red-500 text-sm mt-1">{errors.image}</p>
@@ -301,18 +302,18 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }) => {
             <p className="text-red-500 text-sm mt-2">{errors.submit}</p>
           )}
 
-          <div className="flex justify-end space-x-4 mt-6">
+          <div className="flex justify-end space-x-4 mt-8">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+              className="px-5 py-2 text-blue-700 bg-blue-100 rounded-lg hover:bg-blue-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 font-bold transition-all"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className={`px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 ${
+              className={`px-5 py-2 text-white bg-gradient-to-r from-blue-600 to-blue-400 rounded-lg hover:from-blue-700 hover:to-blue-500 font-bold shadow-md transition-all ${
                 isSubmitting ? "opacity-50 cursor-not-allowed" : ""
               }`}
             >

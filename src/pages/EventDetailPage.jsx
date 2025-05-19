@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useMssv } from "../contexts/MssvContext";
 import eventService from "../services/eventService";
+import { toast } from "react-toastify";
 
 const EventDetailPage = () => {
   const { eventId } = useParams();
@@ -13,8 +14,6 @@ const EventDetailPage = () => {
   const [isRegistering, setIsRegistering] = useState(false);
   const [showMssvModal, setShowMssvModal] = useState(false);
   const [tempMssv, setTempMssv] = useState("");
-  // console.log("-------------------------eventId", eventId);
-  // console.log("-------------------------mssv", mssv);
   useEffect(() => {
     fetchEventDetails();
   }, [eventId, mssv]);
@@ -43,18 +42,30 @@ const EventDetailPage = () => {
       setIsRegistering(true);
       await eventService.registerEvent(mssv, eventId);
       await fetchEventDetails();
+      toast.success("Successfully registered for the event!");
     } catch (error) {
       setError(error.message || "Failed to register for event");
+      toast.error(error.message || "Failed to register for the event!");
     } finally {
       setIsRegistering(false);
     }
   };
 
-  const handleMssvSubmit = () => {
+  const handleMssvSubmit = async () => {
     if (tempMssv) {
       setMssv(tempMssv);
       setShowMssvModal(false);
-      handleRegister();
+      setIsRegistering(true);
+      try {
+        await eventService.registerEvent(tempMssv, eventId);
+        await fetchEventDetails();
+        toast.success("Successfully registered for the event!");
+      } catch (error) {
+        setError(error.message || "Failed to register for event");
+        toast.error(error.message || "Failed to register for the event!");
+      } finally {
+        setIsRegistering(false);
+      }
     }
   };
 

@@ -1,51 +1,39 @@
 import api from './api';
 
 const eventService = {
-    // Get all events with pagination
-    getAllEvents: async (mssvId, page = 0, size = 5) => {
-        try {
-            console.log(`----------------------mssvId`, mssvId);
-            const response = await api.get(`/event?mssvId=${mssvId}&page=${page}&size=${size}`);
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
-    },
+  getAllEvents: async (mssvId, page = 0, size = 5) => {
+    const response = await api.get(`/event?mssvId=${mssvId}&page=${page}&size=${size}`);
+    return response.data;
+  },
 
-    // Get event details by ID
-    getEventById: async (eventId, mssvId) => {
-        try {
-            // console.log(`----------------------/event/${eventId}?mssvId=${mssvId}`)
-            const response = await api.get(`/event/${eventId}?mssvId=${mssvId}`);
-            // console.log("-------------------------response", response);
-            return response;
-        } catch (error) {
-            throw error;
-        }
-    },
+  getEventById: async (eventId, mssvId) => {
+    const response = await api.get(`/event/${eventId}?mssvId=${mssvId}`);
+    return response.data;
+  },
 
-    // Create a new event
-    createEvent: async (eventData) => {
-        try {
-            const response = await api.post('/event', eventData);
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
-    },
+  createEvent: async (eventData) => {
+    const response = await api.post('/event', eventData);
+    return response.data;
+  },
 
-    // Register for an event
-    registerEvent: async (mssvId, eventId) => {
-        try {
-            const response = await api.post('/event/application', {
-                mssvId,
-                eventId
-            });
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
-    }
+  registerEvent: async (mssvId, eventId) => {
+    const response = await api.post('/event/application', {
+      mssvId,
+      eventId
+    });
+    return response.data;
+  },
+
+  uploadImage: async (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await api.post('/upload/image', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
 };
 
-export default eventService; 
+export default eventService;

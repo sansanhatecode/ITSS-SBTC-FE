@@ -25,25 +25,25 @@ const FeaturedEvents = () => {
   const [selectedStatus, setSelectedStatus] = useState(EVENT_STATUS.ALL);
   const { mssv } = useMssv();
 
-  const categorizeEvents = (events) => {
-    const now = new Date();
-    return events.reduce(
-      (acc, event) => {
-        const startDate = new Date(event.startDate);
-        const endDate = new Date(event.endDate);
+  // const categorizeEvents = (events) => {
+  //   const now = new Date();
+  //   return events.reduce(
+  //     (acc, event) => {
+  //       const startDate = new Date(event.startDate);
+  //       const endDate = new Date(event.endDate);
 
-        if (endDate < now) {
-          acc.past.push(event);
-        } else if (startDate > now) {
-          acc.upcoming.push(event);
-        } else {
-          acc.ongoing.push(event);
-        }
-        return acc;
-      },
-      { past: [], ongoing: [], upcoming: [] }
-    );
-  };
+  //       if (endDate < now) {
+  //         acc.past.push(event);
+  //       } else if (startDate > now) {
+  //         acc.upcoming.push(event);
+  //       } else {
+  //         acc.ongoing.push(event);
+  //       }
+  //       return acc;
+  //     },
+  //     { past: [], ongoing: [], upcoming: [] }
+  //   );
+  // };
 
   const getEventStatus = (event) => {
     const now = new Date();
@@ -138,15 +138,17 @@ const FeaturedEvents = () => {
           <button
             key={status}
             onClick={() => setSelectedStatus(status)}
-            className={`px-4 py-2 rounded-full transition-all ${
-              selectedStatus === status
-                ? "bg-blue-600 text-white"
-                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-            }`}
+            className={`px-5 py-2 rounded-full transition-all shadow-md border-2 focus:outline-none focus:ring-2 focus:ring-blue-400 font-semibold text-base
+              ${
+                selectedStatus === status
+                  ? "bg-gradient-to-r from-blue-600 to-blue-400 text-white border-blue-600 scale-105"
+                  : "bg-gray-100 text-gray-700 border-gray-300 hover:bg-blue-100 hover:border-blue-400 hover:text-blue-700"
+              }
+            `}
           >
             {STATUS_LABELS[status]}
             {status !== EVENT_STATUS.ALL && (
-              <span className="ml-2 bg-white bg-opacity-20 px-2 py-0.5 rounded-full text-sm">
+              <span className="ml-2 bg-white bg-opacity-40 px-2 py-0.5 rounded-full text-sm font-bold border border-white/60">
                 {
                   allEvents.filter((event) => getEventStatus(event) === status)
                     .length
@@ -157,40 +159,41 @@ const FeaturedEvents = () => {
         ))}
       </div>
 
-      <div className="relative h-96 overflow-hidden rounded-xl">
+      <div className="relative h-96 overflow-hidden rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
         {displayedEvents.map((event, index) => (
           <Link
             to={`/event/${event.id}`}
             key={event.id}
-            className={`absolute inset-0 transition-opacity duration-1000 ${
+            className={`absolute inset-0 transition-all duration-1000 ${
               index === currentIndex
-                ? "opacity-100"
-                : "opacity-0 pointer-events-none"
-            }`}
+                ? "opacity-100 scale-100 z-10"
+                : "opacity-0 scale-95 pointer-events-none z-0"
+            } group`}
+            style={{ boxShadow: index === currentIndex ? '0 8px 32px 0 rgba(31, 38, 135, 0.15)' : undefined }}
           >
-            <div className="relative h-full">
+            <div className="relative h-full overflow-hidden rounded-2xl">
               <img
                 src={event.image}
                 alt={event.name}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent">
-                <div className="absolute bottom-0 left-0 p-6 text-white">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex flex-col justify-end">
+                <div className="p-6 text-white">
                   <div className="flex items-center gap-2 mb-2">
                     <span
                       className={`${getStatusStyle(
                         getEventStatus(event)
-                      )} text-white text-sm px-3 py-1 rounded-full`}
+                      )} text-white text-sm px-3 py-1 rounded-full shadow-lg border border-white/30`}
                     >
                       {STATUS_LABELS[getEventStatus(event)]}
                     </span>
                   </div>
-                  <h2 className="text-2xl font-bold mb-2">{event.name}</h2>
-                  <p className="mb-2">{event.description}</p>
+                  <h2 className="text-2xl font-extrabold mb-2 drop-shadow-lg">{event.name}</h2>
+                  <p className="mb-2 text-white/90 line-clamp-2">{event.description}</p>
                   <div className="flex items-center space-x-4">
                     <span className="flex items-center">
                       <svg
-                        className="w-5 h-5 mr-1"
+                        className="w-5 h-5 mr-1 text-blue-200"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -206,7 +209,7 @@ const FeaturedEvents = () => {
                     </span>
                     <span className="flex items-center">
                       <svg
-                        className="w-5 h-5 mr-1"
+                        className="w-5 h-5 mr-1 text-blue-200"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -234,14 +237,18 @@ const FeaturedEvents = () => {
         ))}
 
         {/* Navigation dots */}
-        <div className="absolute bottom-4 right-4 flex space-x-2">
+        <div className="absolute bottom-5 right-1/2 translate-x-1/2 flex space-x-3 z-20">
           {displayedEvents.map((_, index) => (
             <button
               key={index}
               onClick={() => setCurrentIndex(index)}
-              className={`w-2 h-2 rounded-full transition-colors ${
-                index === currentIndex ? "bg-white" : "bg-white/50"
-              }`}
+              className={`w-4 h-4 rounded-full border-2 border-white transition-all duration-300 shadow-md focus:outline-none
+                ${
+                  index === currentIndex
+                    ? "bg-blue-500 scale-125 border-blue-300"
+                    : "bg-white/60 hover:bg-blue-200 border-white/80"
+                }
+              `}
             />
           ))}
         </div>

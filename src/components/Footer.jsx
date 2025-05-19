@@ -4,15 +4,15 @@ const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-white dark:bg-gray-900 pt-12 pb-8 border-t border-gray-200 dark:border-gray-800">
+    <footer className="bg-gradient-to-t from-blue-50 via-white to-blue-100 dark:from-gray-900 dark:to-gray-800 pt-16 pb-10 border-t border-blue-100 dark:border-gray-800 rounded-t-2xl shadow-inner">
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
           {/* Company Info */}
           <div className="col-span-1 md:col-span-1">
             <div className="flex items-center mb-4">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-8 w-8 text-blue-600"
+                className="h-10 w-10 text-blue-600 drop-shadow-lg"
                 viewBox="0 0 20 20"
                 fill="currentColor"
               >
@@ -22,15 +22,15 @@ const Footer = () => {
                   clipRule="evenodd"
                 />
               </svg>
-              <span className="ml-2 text-xl font-bold text-gray-800 dark:text-white">
+              <span className="ml-2 text-2xl font-extrabold text-blue-700 dark:text-white tracking-wide drop-shadow-lg">
                 EventHub
               </span>
             </div>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
+            <p className="text-gray-700 dark:text-gray-300 mb-4 font-medium">
               Find and join the best events in your area. Create unforgettable
               experiences and connect with like-minded people.
             </p>
-            <div className="flex space-x-4">
+            <div className="flex space-x-4 mt-2">
               <a
                 href="#"
                 className="text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors duration-300"
@@ -72,7 +72,7 @@ const Footer = () => {
 
           {/* Quick Links */}
           <div className="col-span-1">
-            <h3 className="text-gray-800 dark:text-white font-semibold mb-4">
+            <h3 className="text-blue-700 dark:text-white font-bold mb-4 text-lg">
               Quick Links
             </h3>
             <ul className="space-y-2">
@@ -113,7 +113,7 @@ const Footer = () => {
 
           {/* Event Categories */}
           <div className="col-span-1">
-            <h3 className="text-gray-800 dark:text-white font-semibold mb-4">
+            <h3 className="text-blue-700 dark:text-white font-bold mb-4 text-lg">
               Event Categories
             </h3>
             <ul className="space-y-2">
@@ -162,10 +162,10 @@ const Footer = () => {
 
           {/* Newsletter */}
           <div className="col-span-1">
-            <h3 className="text-gray-800 dark:text-white font-semibold mb-4">
+            <h3 className="text-blue-700 dark:text-white font-bold mb-4 text-lg">
               Subscribe to Newsletter
             </h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
+            <p className="text-gray-700 dark:text-gray-300 mb-4 font-medium">
               Stay updated with latest events and news
             </p>
             <form>
@@ -173,11 +173,11 @@ const Footer = () => {
                 <input
                   type="email"
                   placeholder="Your email address"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-l-md focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-800 dark:text-white"
+                  className="w-full px-4 py-2 border-2 border-blue-200 dark:border-blue-700 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-800 dark:text-white shadow-sm"
                 />
                 <button
                   type="submit"
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 rounded-r-md transition-colors duration-300"
+                  className="bg-gradient-to-r from-blue-600 to-blue-400 hover:from-blue-700 hover:to-blue-500 text-white font-bold px-5 rounded-r-lg transition-all shadow-md"
                 >
                   <svg
                     className="h-5 w-5"
@@ -198,9 +198,9 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="border-t border-gray-200 dark:border-gray-800 mt-8 pt-8">
+        <div className="border-t border-blue-100 dark:border-gray-800 mt-10 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-gray-600 dark:text-gray-400 mb-4 md:mb-0">
+            <p className="text-gray-700 dark:text-gray-300 mb-4 md:mb-0 font-medium">
               &copy; {currentYear} EventHub. All rights reserved.
             </p>
             <div className="flex space-x-6">

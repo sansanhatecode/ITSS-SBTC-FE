@@ -48,40 +48,40 @@ api.interceptors.response.use(
 );
 
 // Helper function to return mock data based on the endpoint
-const getMockData = (url) => {
-    if (url.includes('/event')) {
-        return {
-            content: [
-                {
-                    id: 'mock1',
-                    name: 'Demo Event 1',
-                    description: 'Description for demo event 1',
-                    startDate: '2024-03-20',
-                    endDate: '2024-03-21',
-                    location: 'Hanoi',
-                    image: 'https://picsum.photos/800/400',
-                    status: 'UPCOMING',
-                    type: 'ACADEMIC'
-                },
-                {
-                    id: 'mock2',
-                    name: 'Demo Event 2',
-                    description: 'Description for demo event 2',
-                    startDate: '2024-03-22',
-                    endDate: '2024-03-23',
-                    location: 'Hanoi',
-                    image: 'https://picsum.photos/800/400',
-                    status: 'UPCOMING',
-                    type: 'ACADEMIC'
-                }
-            ],
-            totalElements: 2,
-            totalPages: 1,
-            size: 10,
-            number: 0
-        };
-    }
-    return null;
-};
+// const getMockData = (url) => {
+//     if (url.includes('/event')) {
+//         return {
+//             content: [
+//                 {
+//                     id: 'mock1',
+//                     name: 'Demo Event 1',
+//                     description: 'Description for demo event 1',
+//                     startDate: '2024-03-20',
+//                     endDate: '2024-03-21',
+//                     location: 'Hanoi',
+//                     image: 'https://picsum.photos/800/400',
+//                     status: 'UPCOMING',
+//                     type: 'ACADEMIC'
+//                 },
+//                 {
+//                     id: 'mock2',
+//                     name: 'Demo Event 2',
+//                     description: 'Description for demo event 2',
+//                     startDate: '2024-03-22',
+//                     endDate: '2024-03-23',
+//                     location: 'Hanoi',
+//                     image: 'https://picsum.photos/800/400',
+//                     status: 'UPCOMING',
+//                     type: 'ACADEMIC'
+//                 }
+//             ],
+//             totalElements: 2,
+//             totalPages: 1,
+//             size: 10,
+//             number: 0
+//         };
+//     }
+//     return null;
+// };
 
 export default api; 
