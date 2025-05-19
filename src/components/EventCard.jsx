@@ -3,7 +3,20 @@ import { useState, useEffect } from "react";
 import { useMssv } from "../contexts/MssvContext";
 import eventService from "../services/eventService";
 
-const EventCard = ({ event: initialEvent, onRegister }) => {
+const getStatusStyle = (status) => {
+  switch (status) {
+    case "past":
+      return "bg-gray-500";
+    case "ongoing":
+      return "bg-green-500";
+    case "upcoming":
+      return "bg-blue-500";
+    default:
+      return "bg-gray-500";
+  }
+};
+
+const EventCard = ({ event: initialEvent, status, statusLabel }) => {
   const [isRegistering, setIsRegistering] = useState(false);
   const [error, setError] = useState(null);
   const [showMssvModal, setShowMssvModal] = useState(false);
@@ -37,17 +50,29 @@ const EventCard = ({ event: initialEvent, onRegister }) => {
     fetchEventDetails(mssv);
   }, [mssv, event.id]);
 
-  const getEventStatus = () => {
-    const now = new Date();
-    const startDate = new Date(event.startDate);
-    const endDate = new Date(event.endDate);
-
-    if (endDate < now) {
-      return { text: "Past", color: "bg-gray-500" };
-    } else if (startDate > now) {
-      return { text: "Upcoming", color: "bg-blue-500" };
+  const handleRegister = async () => {
+    if (!mssv) {
+      setShowMssvModal(true);
+      return;
     }
-    return { text: "Ongoing", color: "bg-green-500" };
+
+    try {
+      setIsRegistering(true);
+      await eventService.registerEvent(mssv, event.id);
+      await fetchEventDetails(mssv);
+    } catch (error) {
+      setError(error.message || "Failed to register for event");
+    } finally {
+      setIsRegistering(false);
+    }
+  };
+
+  const handleMssvSubmit = () => {
+    if (tempMssv) {
+      setMssv(tempMssv);
+      setShowMssvModal(false);
+      handleRegister();
+    }
   };
 
   const formatDate = (dateString) => {
@@ -57,56 +82,6 @@ const EventCard = ({ event: initialEvent, onRegister }) => {
       day: "numeric",
     });
   };
-
-  const handleRegister = async (useMssv = mssv) => {
-    if (!useMssv) {
-      setShowMssvModal(true);
-      return;
-    }
-
-    try {
-      setIsRegistering(true);
-      setError(null);
-
-      // Try to register
-      await eventService.registerEvent(useMssv, event.id);
-
-      // After successful registration, fetch updated event details
-      await fetchEventDetails(useMssv);
-
-      if (onRegister) {
-        onRegister(event.id);
-      }
-
-      setShowMssvModal(false);
-    } catch (error) {
-      console.error("Registration error:", error);
-      // If the error indicates already registered, update the event status
-      if (error.message?.includes("has already been registered")) {
-        setEvent((prev) => ({
-          ...prev,
-          applicationStatus: true,
-        }));
-        setShowMssvModal(false);
-      } else {
-        setError(error.message || "Failed to register for event");
-      }
-    } finally {
-      setIsRegistering(false);
-    }
-  };
-
-  const handleMssvSubmit = async () => {
-    if (tempMssv) {
-      setMssv(tempMssv); // Update global MSSV
-      await handleRegister(tempMssv);
-    }
-  };
-
-  const status = getEventStatus();
-
-  // Only show registration status if MSSV is provided
-  const showRegistrationStatus = mssv && event.applicationStatus !== undefined;
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
@@ -118,15 +93,17 @@ const EventCard = ({ event: initialEvent, onRegister }) => {
         />
         <div className="absolute top-2 right-2 flex flex-col gap-2">
           <span
-            className={`${status.color} text-white text-xs font-bold px-2 py-1 rounded`}
+            className={`${getStatusStyle(
+              status
+            )} text-white text-xs font-bold px-3 py-1 rounded-full`}
           >
-            {status.text}
+            {statusLabel}
           </span>
-          {showRegistrationStatus && (
+          {event.applicationStatus !== undefined && (
             <span
               className={`${
                 event.applicationStatus ? "bg-green-500" : "bg-yellow-500"
-              } text-white text-xs font-bold px-2 py-1 rounded`}
+              } text-white text-xs font-bold px-3 py-1 rounded-full`}
             >
               {event.applicationStatus ? "Registered" : "Not Registered"}
             </span>
@@ -161,7 +138,6 @@ const EventCard = ({ event: initialEvent, onRegister }) => {
               {formatDate(event.startDate)} - {formatDate(event.endDate)}
             </span>
           </div>
-
           <div className="flex items-center">
             <svg
               className="w-4 h-4 mr-2"
@@ -186,66 +162,66 @@ const EventCard = ({ event: initialEvent, onRegister }) => {
           </div>
         </div>
 
-        {error && (
-          <div className="mt-2 text-red-500 text-sm text-center">{error}</div>
-        )}
-
-        <div className="mt-4 space-y-2">
+        <div className="mt-4 flex justify-between items-center">
           <Link
             to={`/event/${event.id}`}
-            className="block w-full text-center py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-300"
+            className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
           >
             View Details
           </Link>
-
-          {!event.applicationStatus && status.text !== "Past" && (
-            <button
-              onClick={() => handleRegister()}
-              disabled={isRegistering}
-              className={`block w-full text-center py-2 ${
-                isRegistering
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-green-600 hover:bg-green-700"
-              } text-white font-medium rounded-lg transition-colors duration-300`}
-            >
-              {isRegistering ? "Registering..." : "Register for Event"}
-            </button>
-          )}
+          <button
+            onClick={handleRegister}
+            disabled={isRegistering || event.applicationStatus}
+            className={`px-4 py-2 rounded-lg ${
+              event.applicationStatus
+                ? "bg-green-500 text-white cursor-not-allowed"
+                : isRegistering
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-700 text-white"
+            }`}
+          >
+            {isRegistering
+              ? "Registering..."
+              : event.applicationStatus
+              ? "Registered"
+              : "Register"}
+          </button>
         </div>
       </div>
 
       {/* MSSV Modal */}
       {showMssvModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-96">
-            <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
-              Enter your MSSV
-            </h3>
+          <div className="bg-white p-6 rounded-lg">
+            <h3 className="text-lg font-bold mb-4">Enter your Student ID</h3>
             <input
               type="text"
               value={tempMssv}
               onChange={(e) => setTempMssv(e.target.value)}
-              placeholder="Enter your MSSV..."
-              className="w-full px-4 py-2 mb-4 rounded-lg border border-gray-300 dark:border-gray-600 
-                     focus:outline-none focus:ring-2 focus:ring-blue-500 
-                     dark:bg-gray-700 dark:text-white"
+              className="border p-2 mb-4 w-full"
+              placeholder="Enter your Student ID"
             />
-            <div className="flex justify-end space-x-2">
+            <div className="flex justify-end gap-2">
               <button
                 onClick={() => setShowMssvModal(false)}
-                className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+                className="px-4 py-2 text-gray-600 hover:text-gray-800"
               >
                 Cancel
               </button>
               <button
                 onClick={handleMssvSubmit}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                disabled={isRegistering}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
               >
-                {isRegistering ? "Registering..." : "Submit"}
+                Confirm
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {error && (
+        <div className="absolute bottom-4 right-4 bg-red-500 text-white px-4 py-2 rounded">
+          {error}
         </div>
       )}
     </div>

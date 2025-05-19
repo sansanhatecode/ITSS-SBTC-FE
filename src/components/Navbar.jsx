@@ -68,16 +68,10 @@ const Navbar = ({ onCreateEvent }) => {
             >
               Home
             </Link>
-            <Link
-              to="/about"
-              className={`${isActive("/about")} transition-colors duration-300`}
-            >
-              About
-            </Link>
             <div className="relative">
               <input
                 type="text"
-                placeholder="Enter your MSSV..."
+                placeholder="Enter your HUST ID..."
                 value={mssv}
                 onChange={(e) => setMssv(e.target.value)}
                 className="w-48 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 
@@ -85,12 +79,6 @@ const Navbar = ({ onCreateEvent }) => {
                          dark:bg-gray-700 dark:text-white text-sm"
               />
             </div>
-            <button
-              onClick={onCreateEvent}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors duration-300"
-            >
-              Create Event
-            </button>
           </div>
 
           {/* Mobile Menu Button */}
@@ -153,7 +141,7 @@ const Navbar = ({ onCreateEvent }) => {
               <div className="relative">
                 <input
                   type="text"
-                  placeholder="Enter your MSSV..."
+                  placeholder="Enter your HUST ID..."
                   value={mssv}
                   onChange={(e) => setMssv(e.target.value)}
                   className="w-48 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 

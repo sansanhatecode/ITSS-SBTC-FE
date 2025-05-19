@@ -3,27 +3,54 @@ import eventService from "../services/eventService";
 import EventCard from "./EventCard";
 import { useMssv } from "../contexts/MssvContext";
 
+const EVENT_STATUS = {
+  ALL: "all",
+  PAST: "past",
+  ONGOING: "ongoing",
+  UPCOMING: "upcoming",
+};
+
+const STATUS_LABELS = {
+  [EVENT_STATUS.ALL]: "All Events",
+  [EVENT_STATUS.PAST]: "Past Events",
+  [EVENT_STATUS.ONGOING]: "Ongoing Events",
+  [EVENT_STATUS.UPCOMING]: "Upcoming Events",
+};
+
 const EventList = ({ searchTerm = "", category = "" }) => {
   const [events, setEvents] = useState([]);
+  const [displayedEvents, setDisplayedEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
-  const { mssv } = useMssv(); // Use MSSV from context
+  const [selectedStatus, setSelectedStatus] = useState(EVENT_STATUS.ALL);
+  const { mssv } = useMssv();
+
+  const getEventStatus = (event) => {
+    const now = new Date();
+    const startDate = new Date(event.startDate);
+    const endDate = new Date(event.endDate);
+
+    if (endDate < now) {
+      return EVENT_STATUS.PAST;
+    } else if (startDate > now) {
+      return EVENT_STATUS.UPCOMING;
+    }
+    return EVENT_STATUS.ONGOING;
+  };
 
   const fetchEvents = async (page = 0, append = false) => {
     try {
       setLoading(true);
       const response = await eventService.getAllEvents(mssv, page, 10);
-
-      // Log the response to see what we're getting
-      console.log("Events response:", response);
-
-      // Get the events from the response
       const newContent = response?.content || [];
-      console.log("Events content:", newContent);
 
-      setEvents(append ? [...events, ...newContent] : newContent);
+      if (append) {
+        setEvents((prev) => [...prev, ...newContent]);
+      } else {
+        setEvents(newContent);
+      }
       setHasMore(newContent.length === 10);
     } catch (error) {
       console.error("Failed to fetch events:", error);
@@ -39,8 +66,8 @@ const EventList = ({ searchTerm = "", category = "" }) => {
     return text.toString().toLowerCase().includes(search.toLowerCase());
   };
 
-  // Filter events based on search and category
-  const getFilteredEvents = () => {
+  // Filter events based on search, category and status
+  const filterEvents = () => {
     if (!Array.isArray(events)) return [];
 
     return events.filter((event) => {
@@ -52,20 +79,23 @@ const EventList = ({ searchTerm = "", category = "" }) => {
 
       const matchesType = !category || safeStringIncludes(event.type, category);
 
-      return matchesSearch && matchesType;
+      const matchesStatus =
+        selectedStatus === EVENT_STATUS.ALL ||
+        getEventStatus(event) === selectedStatus;
+
+      return matchesSearch && matchesType && matchesStatus;
     });
   };
 
-  // Handle successful registration
-  const handleRegistration = async (eventId) => {
-    // Refresh the events list to update registration status
-    await fetchEvents(currentPage, false);
-  };
+  // Update displayed events when filters change
+  useEffect(() => {
+    setDisplayedEvents(filterEvents());
+  }, [events, searchTerm, category, selectedStatus]);
 
-  // Initial fetch and refetch when MSSV changes
+  // Initial fetch
   useEffect(() => {
     fetchEvents(0, false);
-  }, [mssv]); // Add mssv as dependency
+  }, [mssv]);
 
   if (error) {
     return (
@@ -84,27 +114,63 @@ const EventList = ({ searchTerm = "", category = "" }) => {
     );
   }
 
-  const filteredEvents = getFilteredEvents();
-
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* Filter Buttons */}
+      <div className="flex gap-2 mb-6 flex-wrap">
+        {Object.values(EVENT_STATUS).map((status) => (
+          <button
+            key={status}
+            onClick={() => setSelectedStatus(status)}
+            className={`px-4 py-2 rounded-full transition-all ${
+              selectedStatus === status
+                ? "bg-blue-600 text-white"
+                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+            }`}
+          >
+            {STATUS_LABELS[status]}
+            {status !== EVENT_STATUS.ALL && (
+              <span className="ml-2 bg-white bg-opacity-20 px-2 py-0.5 rounded-full text-sm">
+                {
+                  events.filter((event) => getEventStatus(event) === status)
+                    .length
+                }
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+
       {loading && events.length === 0 ? (
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredEvents.map((event) => (
-              <EventCard
-                key={event.id}
-                event={event}
-                onRegister={handleRegistration}
-              />
-            ))}
-          </div>
+          {displayedEvents.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500">
+                No{" "}
+                {selectedStatus !== EVENT_STATUS.ALL
+                  ? STATUS_LABELS[selectedStatus].toLowerCase()
+                  : "events"}{" "}
+                found
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {displayedEvents.map((event) => (
+                <EventCard
+                  key={event.id}
+                  event={event}
+                  status={getEventStatus(event)}
+                  statusLabel={STATUS_LABELS[getEventStatus(event)]}
+                />
+              ))}
+            </div>
+          )}
 
-          {hasMore && (
+          {hasMore && displayedEvents.length > 0 && (
             <div className="text-center mt-8">
               <button
                 onClick={() => fetchEvents(currentPage + 1, true)}
@@ -113,12 +179,6 @@ const EventList = ({ searchTerm = "", category = "" }) => {
               >
                 {loading ? "Loading..." : "Load More"}
               </button>
-            </div>
-          )}
-
-          {filteredEvents.length === 0 && !loading && (
-            <div className="text-center py-8">
-              <p className="text-gray-500">No events found</p>
             </div>
           )}
         </>
