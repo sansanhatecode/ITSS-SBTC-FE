@@ -4,6 +4,7 @@ const eventService = {
     // Get all events with pagination
     getAllEvents: async (mssvId, page = 0, size = 5) => {
         try {
+            console.log(`----------------------mssvId`, mssvId);
             const response = await api.get(`/event?mssvId=${mssvId}&page=${page}&size=${size}`);
             return response.data;
         } catch (error) {
@@ -14,7 +15,7 @@ const eventService = {
     // Get event details by ID
     getEventById: async (eventId, mssvId) => {
         try {
-            console.log(`----------------------/event/${eventId}?mssvId=${mssvId}`)
+            // console.log(`----------------------/event/${eventId}?mssvId=${mssvId}`)
             const response = await api.get(`/event/${eventId}?mssvId=${mssvId}`);
             // console.log("-------------------------response", response);
             return response;
