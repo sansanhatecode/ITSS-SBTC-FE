@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { useMssv } from "../contexts/MssvContext";
 
 const Navbar = ({ onCreateEvent }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+  const { mssv, setMssv } = useMssv();
 
   // Handle scroll effect for navbar
   useEffect(() => {
@@ -72,6 +74,17 @@ const Navbar = ({ onCreateEvent }) => {
             >
               About
             </Link>
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Enter your MSSV..."
+                value={mssv}
+                onChange={(e) => setMssv(e.target.value)}
+                className="w-48 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 
+                         focus:outline-none focus:ring-2 focus:ring-blue-500 
+                         dark:bg-gray-700 dark:text-white text-sm"
+              />
+            </div>
             <button
               onClick={onCreateEvent}
               className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors duration-300"
@@ -137,6 +150,17 @@ const Navbar = ({ onCreateEvent }) => {
               >
                 About
               </Link>
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Enter your MSSV..."
+                  value={mssv}
+                  onChange={(e) => setMssv(e.target.value)}
+                  className="w-48 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 
+                           focus:outline-none focus:ring-2 focus:ring-blue-500 
+                           dark:bg-gray-700 dark:text-white text-sm"
+                />
+              </div>
               <button
                 onClick={() => {
                   onCreateEvent();

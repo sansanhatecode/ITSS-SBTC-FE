@@ -1,12 +1,12 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: 'http://localhost:8080/api/v1', // Adjust this to match your backend URL
+    baseURL: 'http://localhost:8080/api/v1', // Updated to match the backend URL
     headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
     },
-    withCredentials: false // Disable credentials for now since backend might not support it yet
+    withCredentials: true // Enable credentials since backend supports it
 });
 
 // Add a request interceptor
@@ -26,23 +26,19 @@ api.interceptors.request.use(
 // Add a response interceptor
 api.interceptors.response.use(
     (response) => {
-        // Return the actual data from the response
+        // Return the data property from the ApiResponse structure
         return response.data;
     },
     (error) => {
-        // Handle errors here
         if (error.response) {
-            // The request was made and the server responded with a status code
-            // that falls out of the range of 2xx
             console.error('API Error:', error.response.data);
             return Promise.reject(error.response.data);
         } else if (error.request) {
-            // The request was made but no response was received
             console.error('Network Error:', error.request);
-            const mockData = getMockData(error.config.url);
-            return Promise.resolve(mockData);
+            return Promise.reject({
+                message: 'Không thể kết nối đến máy chủ. Vui lòng thử lại sau.'
+            });
         } else {
-            // Something happened in setting up the request that triggered an Error
             console.error('Error:', error.message);
             return Promise.reject({ message: error.message });
         }
