@@ -23,7 +23,7 @@ const EventDetailPage = () => {
       setLoading(true);
       const response = await eventService.getEventById(eventId, mssv);
       console.log("Event details response:", response); // Debug log
-      setEvent(response.data);
+      setEvent(response);
     } catch (error) {
       console.error("Error fetching event:", error); // Debug log
       setError(error.message || "Failed to load event details");
@@ -137,9 +137,8 @@ const EventDetailPage = () => {
             </span>
             {mssv && event.applicationStatus !== undefined && (
               <span
-                className={`${
-                  event.applicationStatus ? "bg-green-500" : "bg-yellow-500"
-                } text-white text-sm font-bold px-3 py-1 rounded`}
+                className={`${event.applicationStatus ? "bg-green-500" : "bg-yellow-500"
+                  } text-white text-sm font-bold px-3 py-1 rounded`}
               >
                 {event.applicationStatus ? "Registered" : "Not Registered"}
               </span>
@@ -237,11 +236,10 @@ const EventDetailPage = () => {
               <button
                 onClick={handleRegister}
                 disabled={isRegistering}
-                className={`px-6 py-2 ${
-                  isRegistering
+                className={`px-6 py-2 ${isRegistering
                     ? "bg-gray-400 cursor-not-allowed"
                     : "bg-green-600 hover:bg-green-700"
-                } text-white font-medium rounded-lg`}
+                  } text-white font-medium rounded-lg`}
               >
                 {isRegistering ? "Registering..." : "Register for Event"}
               </button>

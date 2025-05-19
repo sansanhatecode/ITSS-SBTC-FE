@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import EventCard from "./EventCard";
 
 const EVENT_STATUS = {
@@ -19,6 +20,7 @@ const EventList = ({ searchTerm = "", category = "", events = [], loading = fals
   const [displayedEvents, setDisplayedEvents] = useState([]);
   const [error, setError] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState(EVENT_STATUS.ALL);
+  const navigate = useNavigate();
 
   const getEventStatus = (event) => {
     const now = new Date();
@@ -37,6 +39,11 @@ const EventList = ({ searchTerm = "", category = "", events = [], loading = fals
   const safeStringIncludes = (text, search) => {
     if (!text || !search) return false;
     return text.toString().toLowerCase().includes(search.toLowerCase());
+  };
+
+  // Handler để chuyển hướng đến trang chi tiết sự kiện
+  const handleEventClick = (eventId) => {
+    navigate(`/event/${eventId}`);
   };
 
   // Update displayed events when filters change
@@ -88,10 +95,9 @@ const EventList = ({ searchTerm = "", category = "", events = [], loading = fals
             key={status}
             onClick={() => setSelectedStatus(status)}
             className={`px-5 py-2 rounded-full transition-all shadow-md border-2 focus:outline-none focus:ring-2 focus:ring-blue-400 font-semibold text-base
-              ${
-                selectedStatus === status
-                  ? "bg-gradient-to-r from-blue-600 to-blue-400 text-white border-blue-600 scale-105"
-                  : "bg-gray-100 text-gray-700 border-gray-300 hover:bg-blue-100 hover:border-blue-400 hover:text-blue-700"
+              ${selectedStatus === status
+                ? "bg-gradient-to-r from-blue-600 to-blue-400 text-white border-blue-600 scale-105"
+                : "bg-gray-100 text-gray-700 border-gray-300 hover:bg-blue-100 hover:border-blue-400 hover:text-blue-700"
               }
             `}
           >
@@ -123,12 +129,13 @@ const EventList = ({ searchTerm = "", category = "", events = [], loading = fals
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {displayedEvents.map((event) => (
-                <EventCard
-                  key={event.id}
-                  event={event}
-                  status={getEventStatus(event)}
-                  statusLabel={STATUS_LABELS[getEventStatus(event)]}
-                />
+                <div key={event.id} onClick={() => handleEventClick(event.id)} className="cursor-pointer">
+                  <EventCard
+                    event={event}
+                    status={getEventStatus(event)}
+                    statusLabel={STATUS_LABELS[getEventStatus(event)]}
+                  />
+                </div>
               ))}
             </div>
           )}
