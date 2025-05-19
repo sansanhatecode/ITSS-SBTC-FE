@@ -150,11 +150,10 @@ const EventList = ({ searchTerm = "", category = "" }) => {
           {displayedEvents.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-gray-500">
-                No{" "}
+                No events found{" "}
                 {selectedStatus !== EVENT_STATUS.ALL
-                  ? STATUS_LABELS[selectedStatus].toLowerCase()
-                  : "events"}{" "}
-                found
+                  ? `in ${STATUS_LABELS[selectedStatus].toLowerCase()}`
+                  : ""}
               </p>
             </div>
           ) : (
