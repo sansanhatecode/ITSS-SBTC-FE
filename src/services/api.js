@@ -1,14 +1,14 @@
-import axios from 'axios';
+import axios from "axios";
 
 const api = axios.create({
-    baseURL: 'https://itss2-hustevent.onrender.com/api/v1', // Updated to match the backend URL
-    // baseURL: 'http://localhost:8080/api/v1', // Updated to match the backend URL
-    // baseURL: 'https://83db-2402-800-61c5-a067-3138-ba63-aec0-2168.ngrok-free.app/api/v1', // Updated to match the backend URL
-    headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-    },
-    // withCredentials: true // Enable credentials since backend supports it
+  baseURL: "https://itss2-hustevent.onrender.com/api/v1", // Updated to match the backend URL
+  // baseURL: 'http://localhost:8080/api/v1', // Updated to match the backend URL
+  // baseURL: 'https://83db-2402-800-61c5-a067-3138-ba63-aec0-2168.ngrok-free.app/api/v1', // Updated to match the backend URL
+  headers: {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  },
+  // withCredentials: true // Enable credentials since backend supports it
 });
 
 // Add a request interceptor
@@ -27,24 +27,24 @@ const api = axios.create({
 
 // Add a response interceptor
 api.interceptors.response.use(
-    (response) => {
-        // Return the data property from the ApiResponse structure
-        return response.data;
-    },
-    (error) => {
-        if (error.response) {
-            console.error('API Error:', error.response.data);
-            return Promise.reject(error.response.data);
-        } else if (error.request) {
-            console.error('Network Error:', error.request);
-            return Promise.reject({
-                message: 'Unable to connect to server. Please try again later.'
-            });
-        } else {
-            console.error('Error:', error.message);
-            return Promise.reject({ message: error.message });
-        }
+  (response) => {
+    // Return the data property from the ApiResponse structure
+    return response.data;
+  },
+  (error) => {
+    if (error.response) {
+      console.error("API Error:", error.response.data);
+      return Promise.reject(error.response.data);
+    } else if (error.request) {
+      console.error("Network Error:", error.request);
+      return Promise.reject({
+        message: "Unable to connect to server. Please try again later.",
+      });
+    } else {
+      console.error("Error:", error.message);
+      return Promise.reject({ message: error.message });
     }
+  }
 );
 
 // Helper function to return mock data based on the endpoint
@@ -84,4 +84,4 @@ api.interceptors.response.use(
 //     return null;
 // };
 
-export default api; 
+export default api;

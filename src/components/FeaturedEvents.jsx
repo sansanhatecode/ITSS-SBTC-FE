@@ -17,100 +17,56 @@ const STATUS_LABELS = {
   [EVENT_STATUS.UPCOMING]: "Upcoming Events",
 };
 
+function getRandomItems(arr, n) {
+  const result = [];
+  const taken = new Set();
+  while (result.length < n && taken.size < arr.length) {
+    const idx = Math.floor(Math.random() * arr.length);
+    if (!taken.has(idx)) {
+      result.push(arr[idx]);
+      taken.add(idx);
+    }
+  }
+  return result;
+}
+
 const FeaturedEvents = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [allEvents, setAllEvents] = useState([]);
-  const [displayedEvents, setDisplayedEvents] = useState([]);
+  const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedStatus, setSelectedStatus] = useState(EVENT_STATUS.ALL);
   const { mssv } = useMssv();
-
-  // const categorizeEvents = (events) => {
-  //   const now = new Date();
-  //   return events.reduce(
-  //     (acc, event) => {
-  //       const startDate = new Date(event.startDate);
-  //       const endDate = new Date(event.endDate);
-
-  //       if (endDate < now) {
-  //         acc.past.push(event);
-  //       } else if (startDate > now) {
-  //         acc.upcoming.push(event);
-  //       } else {
-  //         acc.ongoing.push(event);
-  //       }
-  //       return acc;
-  //     },
-  //     { past: [], ongoing: [], upcoming: [] }
-  //   );
-  // };
-
-  const getEventStatus = (event) => {
-    const now = new Date();
-    const startDate = new Date(event.startDate);
-    const endDate = new Date(event.endDate);
-
-    if (endDate < now) {
-      return EVENT_STATUS.PAST;
-    } else if (startDate > now) {
-      return EVENT_STATUS.UPCOMING;
-    }
-    return EVENT_STATUS.ONGOING;
-  };
 
   useEffect(() => {
     const fetchFeaturedEvents = async () => {
       try {
         setLoading(true);
         const response = await eventService.getAllEvents(mssv, 0, 100);
-        setAllEvents(response.content);
-        setDisplayedEvents(response.content);
+        // Only keep events that have not ended
+        const now = new Date();
+        const notEndedEvents = response.content.filter(
+          (event) => new Date(event.endDate) >= now
+        );
+        // Pick 5 random events
+        const randomEvents = getRandomItems(notEndedEvents, 5);
+        setEvents(randomEvents);
       } catch (error) {
         console.error("Error fetching featured events:", error);
       } finally {
         setLoading(false);
       }
     };
-
     fetchFeaturedEvents();
   }, [mssv]);
 
   useEffect(() => {
-    if (selectedStatus === EVENT_STATUS.ALL) {
-      setDisplayedEvents(allEvents);
-    } else {
-      const filteredEvents = allEvents.filter(
-        (event) => getEventStatus(event) === selectedStatus
-      );
-      setDisplayedEvents(filteredEvents);
-    }
-    setCurrentIndex(0); // Reset slider index when changing filter
-  }, [selectedStatus, allEvents]);
-
-  useEffect(() => {
-    if (displayedEvents.length === 0) return;
-
+    if (events.length === 0) return;
     const timer = setInterval(() => {
       setCurrentIndex((prevIndex) =>
-        prevIndex === displayedEvents.length - 1 ? 0 : prevIndex + 1
+        prevIndex === events.length - 1 ? 0 : prevIndex + 1
       );
     }, 5000);
-
     return () => clearInterval(timer);
-  }, [displayedEvents.length]);
-
-  const getStatusStyle = (status) => {
-    switch (status) {
-      case EVENT_STATUS.PAST:
-        return "bg-gray-500";
-      case EVENT_STATUS.ONGOING:
-        return "bg-green-500";
-      case EVENT_STATUS.UPCOMING:
-        return "bg-blue-500";
-      default:
-        return "bg-gray-500";
-    }
-  };
+  }, [events.length]);
 
   if (loading) {
     return (
@@ -120,7 +76,7 @@ const FeaturedEvents = () => {
     );
   }
 
-  if (displayedEvents.length === 0) {
+  if (events.length === 0) {
     return (
       <div className="relative h-96 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
         <p className="text-gray-500 dark:text-gray-400">
@@ -131,125 +87,119 @@ const FeaturedEvents = () => {
   }
 
   return (
-    <div>
-      {/* Filter Buttons */}
-      <div className="flex gap-2 mb-4 flex-wrap">
-        {Object.values(EVENT_STATUS).map((status) => (
-          <button
-            key={status}
-            onClick={() => setSelectedStatus(status)}
-            className={`px-5 py-2 rounded-full transition-all shadow-md border-2 focus:outline-none focus:ring-2 focus:ring-blue-400 font-semibold text-base
-              ${
-                selectedStatus === status
-                  ? "bg-gradient-to-r from-blue-600 to-blue-400 text-white border-blue-600 scale-105"
-                  : "bg-gray-100 text-gray-700 border-gray-300 hover:bg-blue-100 hover:border-blue-400 hover:text-blue-700"
-              }
-            `}
-          >
-            {STATUS_LABELS[status]}
-            {status !== EVENT_STATUS.ALL && (
-              <span className="ml-2 bg-white bg-opacity-40 px-2 py-0.5 rounded-full text-sm font-bold border border-white/60">
-                {
-                  allEvents.filter((event) => getEventStatus(event) === status)
-                    .length
-                }
-              </span>
-            )}
-          </button>
-        ))}
-      </div>
-
-      <div className="relative h-96 overflow-hidden rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
-        {displayedEvents.map((event, index) => (
+    <div className="space-y-6">
+      {/* Featured Events Slider */}
+      <div className="relative h-[500px] overflow-hidden rounded-3xl shadow-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 transition-all duration-300">
+        {events.map((event, index) => (
           <Link
             to={`/event/${event.id}`}
             key={event.id}
-            className={`absolute inset-0 transition-all duration-1000 ${
-              index === currentIndex
-                ? "opacity-100 scale-100 z-10"
-                : "opacity-0 scale-95 pointer-events-none z-0"
-            } group`}
-            style={{ boxShadow: index === currentIndex ? '0 8px 32px 0 rgba(31, 38, 135, 0.15)' : undefined }}
+            className={`absolute inset-0 transition-all duration-700 ease-in-out
+              ${
+                index === currentIndex
+                  ? "opacity-100 translate-x-0 z-10 scale-100"
+                  : index < currentIndex
+                  ? "opacity-0 -translate-x-10 scale-95 z-0"
+                  : "opacity-0 translate-x-10 scale-95 z-0"
+              }
+              group hover:scale-[1.01] hover:shadow-2xl`}
+            style={{
+              boxShadow:
+                index === currentIndex
+                  ? "0 12px 40px 0 rgba(31, 38, 135, 0.18)"
+                  : undefined,
+            }}
           >
-            <div className="relative h-full overflow-hidden rounded-2xl">
+            <div className="relative h-full overflow-hidden rounded-3xl">
               <img
                 src={event.image}
                 alt={event.name}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex flex-col justify-end">
-                <div className="p-6 text-white">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span
-                      className={`${getStatusStyle(
-                        getEventStatus(event)
-                      )} text-white text-sm px-3 py-1 rounded-full shadow-lg border border-white/30`}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col justify-end">
+                {/* Event name and description at bottom, above info row */}
+                <div className="absolute left-0 right-0 bottom-20 px-8 flex flex-col items-start">
+                  <h2 className="text-2xl md:text-3xl lg:text-4xl font-extrabold mb-2 drop-shadow-lg leading-tight text-white text-left w-full">
+                    {event.name}
+                  </h2>
+                  <p className="mb-2 text-white/90 line-clamp-2 text-base md:text-lg font-medium text-left w-full">
+                    {event.description}
+                  </p>
+                </div>
+                {/* Date and location at bottom left */}
+                <div className="absolute left-8 bottom-6 flex flex-col items-start space-y-2 z-20">
+                  <span className="flex items-center text-sm md:text-base font-semibold text-white/90">
+                    <svg
+                      className="w-5 h-5 mr-2 text-blue-200"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
                     >
-                      {STATUS_LABELS[getEventStatus(event)]}
-                    </span>
-                  </div>
-                  <h2 className="text-2xl font-extrabold mb-2 drop-shadow-lg">{event.name}</h2>
-                  <p className="mb-2 text-white/90 line-clamp-2">{event.description}</p>
-                  <div className="flex items-center space-x-4">
-                    <span className="flex items-center">
-                      <svg
-                        className="w-5 h-5 mr-1 text-blue-200"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                        />
-                      </svg>
-                      {new Date(event.startDate).toLocaleDateString("en-US")}
-                    </span>
-                    <span className="flex items-center">
-                      <svg
-                        className="w-5 h-5 mr-1 text-blue-200"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                        />
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
-                      </svg>
-                      {event.location}
-                    </span>
-                  </div>
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
+                    {new Date(event.startDate).toLocaleDateString("en-US")}
+                  </span>
+                  <span className="flex items-center text-sm md:text-base font-semibold text-white/90">
+                    <svg
+                      className="w-5 h-5 mr-2 text-blue-200"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                    </svg>
+                    {event.location}
+                  </span>
                 </div>
               </div>
             </div>
           </Link>
         ))}
-
-        {/* Navigation dots */}
-        <div className="absolute bottom-5 right-1/2 translate-x-1/2 flex space-x-3 z-20">
-          {displayedEvents.map((_, index) => (
+        {/* Navigation dots overlap inside card, bottom right, beautiful style */}
+        <div className="absolute bottom-6 right-8 flex space-x-3 z-30">
+          {events.map((_, index) => (
             <button
               key={index}
               onClick={() => setCurrentIndex(index)}
-              className={`w-4 h-4 rounded-full border-2 border-white transition-all duration-300 shadow-md focus:outline-none
+              className={`w-5 h-5 flex items-center justify-center rounded-full border-2 transition-all duration-500 focus:outline-none p-0
                 ${
                   index === currentIndex
-                    ? "bg-blue-500 scale-125 border-blue-300"
-                    : "bg-white/60 hover:bg-blue-200 border-white/80"
+                    ? "border-blue-400 bg-gradient-to-tr from-blue-400 to-blue-600 shadow-lg scale-125 ring-2 ring-blue-200"
+                    : "border-gray-300 bg-white/70 hover:bg-blue-100 hover:border-blue-400 shadow"
                 }
               `}
-            />
+              style={{
+                boxShadow:
+                  index === currentIndex
+                    ? "0 2px 12px 0 rgba(59,130,246,0.25)"
+                    : undefined,
+              }}
+              aria-label={`Go to event ${index + 1}`}
+            >
+              <span
+                className={`block w-3 h-3 rounded-full transition-all duration-500 ${
+                  index === currentIndex
+                    ? "bg-white shadow-md scale-110"
+                    : "bg-gray-400"
+                }`}
+              ></span>
+            </button>
           ))}
         </div>
       </div>
