@@ -205,6 +205,8 @@ const EventDetailPage = () => {
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
+                      width={24}
+                      height={24}
                     >
                       <path
                         strokeLinecap="round"
@@ -250,10 +252,11 @@ const EventDetailPage = () => {
                   className={`flex items-center text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/60 min-h-[44px] p-3 rounded-xl shadow-sm transition-all duration-300 hover:scale-[1.02] hover:shadow-md hover:border-l-4 hover:border-${item.color}-500 opacity-0 animate-[fadeIn_0.5s_ease-out_forwards]`}
                   style={{ animationDelay: item.delay }}
                 >
-                  {item.icon}
-                  <span className="font-semibold text-sm sm:text-base break-all ml-2 text-left">
+                  <div className="w-6 h-6">{item.icon}</div>
+
+                  <p className="font-semibold text-sm sm:text-base ml-2 text-left">
                     {item.value}
-                  </span>
+                  </p>
                 </div>
               ))}
 
@@ -272,7 +275,7 @@ const EventDetailPage = () => {
                     d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
                   />
                 </svg>
-                <span className="font-semibold text-sm sm:text-base break-all ml-2 text-left w-full">
+                <span className="font-semibold text-sm sm:text-base ml-2 text-left w-full">
                   {event.numberOfMssv === null || event.numberOfMssv === 0 ? (
                     <span className="text-green-600 dark:text-green-400 flex items-center gap-1.5">
                       <svg
@@ -280,6 +283,8 @@ const EventDetailPage = () => {
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
+                        width={24}
+                        height={24}
                       >
                         <path
                           strokeLinecap="round"
@@ -317,7 +322,7 @@ const EventDetailPage = () => {
               </div>
 
               <div className="mt-8 opacity-0 animate-[fadeIn_0.5s_ease-out_1.5s_forwards]">
-                <h4 className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-gray-100 mb-4 flex items-center">
+                <h4 className="text-lg sm:text-xl mt-10 font-semibold text-gray-800 dark:text-gray-100 mb-4 flex items-center">
                   <svg
                     className="w-5 h-5 mr-2.5 text-orange-500"
                     fill="currentColor"
@@ -375,6 +380,8 @@ const EventDetailPage = () => {
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
+                        width={24}
+                        height={24}
                       >
                         <path
                           strokeLinecap="round"
@@ -394,8 +401,8 @@ const EventDetailPage = () => {
                     className={`flex items-center text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/60 min-h-[44px] p-3 rounded-xl shadow-sm transition-all duration-300 hover:scale-[1.02] hover:shadow-md hover:border-l-4 hover:border-${item.color}-500 mt-3 opacity-0 animate-[fadeIn_0.5s_ease-out_forwards]`}
                     style={{ animationDelay: item.delay }}
                   >
-                    {item.icon}
-                    <span className="font-semibold text-sm sm:text-base break-all ml-2 text-left">
+                    <div className="max-w-6 max-h-6 w-6">{item.icon}</div>
+                    <span className="font-semibold text-sm sm:text-base ml-2 text-left">
                       {item.value}
                     </span>
                   </div>
