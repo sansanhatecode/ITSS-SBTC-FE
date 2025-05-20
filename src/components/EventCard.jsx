@@ -22,7 +22,6 @@ const getStatusStyle = (status) => {
 const EventCard = ({ event: initialEvent, status, statusLabel }) => {
   const navigate = useNavigate();
   const [isRegistering, setIsRegistering] = useState(false);
-  const [error, setError] = useState(null);
   const [showMssvModal, setShowMssvModal] = useState(false);
   const [tempMssv, setTempMssv] = useState("");
   const { mssv, setMssv } = useMssv();
@@ -68,7 +67,6 @@ const EventCard = ({ event: initialEvent, status, statusLabel }) => {
         theme: "colored",
       });
     } catch (error) {
-      setError(error.message || `Failed to register for event: ${event.name}`);
       toast.error(error.message || `Failed to register for "${event.name}"!`, {
         theme: "colored",
       });
@@ -89,9 +87,6 @@ const EventCard = ({ event: initialEvent, status, statusLabel }) => {
           theme: "colored",
         });
       } catch (error) {
-        setError(
-          error.message || `Failed to register for event: ${event.name}`
-        );
         toast.error(
           error.message || `Failed to register for "${event.name}"!`,
           { theme: "colored" }
@@ -360,10 +355,13 @@ const EventCard = ({ event: initialEvent, status, statusLabel }) => {
       {/* MSSV Modal - Positioned in the document body via React Portal */}
       {showMssvModal &&
         ReactDOM.createPortal(
-          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 animate-[fadeIn_0.3s_ease-out_forwards]">
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[1000]"
+            style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0 }}
+          >
             <div
-              className="bg-white dark:bg-gray-800 rounded-2xl p-8 max-w-md w-11/12 sm:w-96 shadow-2xl transform transition-all duration-500 opacity-0 animate-[scaleIn_0.4s_ease-out_0.1s_forwards] relative overflow-hidden border border-blue-100 dark:border-blue-900"
-              style={{ boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)" }}
+              className="bg-white dark:bg-gray-900 p-8 rounded-2xl shadow-2xl max-w-md w-full mx-4 relative animate-fadeIn border-2 border-blue-200 dark:border-blue-800/50"
+              style={{ animation: "fadeIn 0.3s ease-out" }}
             >
               <div className="relative z-10">
                 <div className="flex items-center justify-start mb-6">
@@ -402,8 +400,8 @@ const EventCard = ({ event: initialEvent, status, statusLabel }) => {
                     onChange={(e) => setTempMssv(e.target.value)}
                     placeholder="e.g., 20200001"
                     className="w-full px-4 py-3 pl-12 rounded-xl border border-gray-300 dark:border-gray-600
-                         focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                         dark:bg-gray-700 dark:text-white text-lg transition-all duration-300 shadow-sm hover:shadow-md focus:shadow-lg"
+                       focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                       dark:bg-gray-700 dark:text-white text-lg transition-all duration-300 shadow-sm hover:shadow-md focus:shadow-lg"
                   />
                   <svg
                     className="w-6 h-6 absolute left-3 top-3.5 text-gray-400"
@@ -422,7 +420,7 @@ const EventCard = ({ event: initialEvent, status, statusLabel }) => {
                   <button
                     onClick={() => setShowMssvModal(false)}
                     className="px-5 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl
-                           hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-300 font-medium border border-gray-200 dark:border-gray-600"
+                         hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-300 font-medium border border-gray-200 dark:border-gray-600"
                   >
                     Cancel
                   </button>
@@ -430,11 +428,11 @@ const EventCard = ({ event: initialEvent, status, statusLabel }) => {
                     onClick={handleMssvSubmit}
                     disabled={!tempMssv.trim()}
                     className={`px-5 py-2.5 rounded-xl font-medium text-white
-                           transition-all duration-300 flex items-center gap-2 relative overflow-hidden ${
-                             !tempMssv.trim()
-                               ? "bg-blue-400 cursor-not-allowed opacity-70"
-                               : "bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 shadow-md hover:shadow-lg"
-                           }`}
+                         transition-all duration-300 flex items-center gap-2 relative overflow-hidden ${
+                           !tempMssv.trim()
+                             ? "bg-blue-400 cursor-not-allowed opacity-70"
+                             : "bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 shadow-md hover:shadow-lg"
+                         }`}
                   >
                     <svg
                       className="w-5 h-5"
@@ -452,35 +450,6 @@ const EventCard = ({ event: initialEvent, status, statusLabel }) => {
                     <span>Confirm & Register</span>
                   </button>
                 </div>
-              </div>
-            </div>
-          </div>,
-          document.body
-        )}
-
-      {error &&
-        ReactDOM.createPortal(
-          <div
-            className="fixed bottom-4 right-4 bg-red-500 text-white px-4 py-3 rounded-xl shadow-lg shadow-red-500/20 animate-fadeIn z-[1000] border border-red-400"
-            style={{ position: "fixed" }}
-          >
-            <div className="flex items-center gap-2">
-              <svg
-                className="w-5 h-5 flex-shrink-0"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                />
-              </svg>
-              <div>
-                <div className="font-semibold">{event.name}</div>
-                <div>{error}</div>
               </div>
             </div>
           </div>,
