@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useMssv } from "../contexts/MssvContext";
 import eventService from "../services/eventService";
@@ -20,6 +20,7 @@ const getStatusStyle = (status) => {
 };
 
 const EventCard = ({ event: initialEvent, status, statusLabel }) => {
+  const navigate = useNavigate();
   const [isRegistering, setIsRegistering] = useState(false);
   const [error, setError] = useState(null);
   const [showMssvModal, setShowMssvModal] = useState(false);
@@ -51,6 +52,7 @@ const EventCard = ({ event: initialEvent, status, statusLabel }) => {
 
   useEffect(() => {
     fetchEventDetails(mssv);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mssv, event.id]);
 
   const handleRegister = async () => {
@@ -89,6 +91,10 @@ const EventCard = ({ event: initialEvent, status, statusLabel }) => {
     }
   };
 
+  const handleViewDetails = () => {
+    navigate(`/event/${event.id}`);
+  };
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -98,9 +104,9 @@ const EventCard = ({ event: initialEvent, status, statusLabel }) => {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 group border border-blue-100 dark:border-gray-700 scale-100 hover:scale-103 hover:border-blue-300 dark:hover:border-blue-500">
+    <div className="bg-white dark:bg-gray-800 rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 group border border-blue-100 dark:border-gray-700 scale-100 hover:scale-103 hover:border-blue-300 dark:hover:border-blue-500 relative">
       <div className="relative">
-        <div className="w-full h-56 overflow-hidden">
+        <div className="w-full h-56 overflow-hidden cursor-pointer" onClick={handleViewDetails}>
         <img
           src={event.image}
           alt={event.name}
@@ -129,7 +135,10 @@ const EventCard = ({ event: initialEvent, status, statusLabel }) => {
       </div>
 
       <div className="p-6">
-        <h3 className="text-xl font-extrabold mb-2.5 text-gray-800 dark:text-white line-clamp-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
+        <h3 
+          className="text-xl font-extrabold mb-2.5 text-gray-800 dark:text-white line-clamp-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300 cursor-pointer"
+          onClick={handleViewDetails}
+        >
           {event.name}
         </h3>
         <p className="text-gray-600 dark:text-gray-300 mb-5 line-clamp-2 font-medium">
@@ -179,7 +188,19 @@ const EventCard = ({ event: initialEvent, status, statusLabel }) => {
           </div>
         </div>
 
-        <div className="mt-6 flex justify-end">
+        <div className="mt-6 flex justify-between items-center">
+          <button
+            onClick={handleViewDetails}
+            className="px-5 py-2.5 rounded-xl font-bold shadow-md transition-all duration-300 flex items-center gap-2 
+              bg-gray-50 dark:bg-gray-700/60 text-blue-600 dark:text-blue-300 hover:bg-blue-50 hover:text-blue-700 dark:hover:bg-blue-900/30 dark:hover:text-blue-200 hover:scale-105 border border-gray-200 dark:border-gray-600 hover:border-blue-200 dark:hover:border-blue-700"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+            </svg>
+            View Details
+          </button>
+          
           {status !== "past" && (
             <button
               onClick={handleRegister}
@@ -280,7 +301,7 @@ const EventCard = ({ event: initialEvent, status, statusLabel }) => {
                   </div>
                 ) : "Confirm"}
               </button>
-            </div>
+    a        </div>
           </div>
         </div>,
         document.body

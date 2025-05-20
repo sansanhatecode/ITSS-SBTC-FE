@@ -93,9 +93,10 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }) => {
     }
     setIsSubmitting(true);
     try {
-      let imageUrl = formData.image;
+      let imageUrl = '';
       if (imageFile) {
         imageUrl = await eventService.uploadImage(imageFile);
+        console.log(imageUrl)
       }
       const formattedData = {
         ...formData,

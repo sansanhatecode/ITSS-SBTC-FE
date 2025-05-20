@@ -1,11 +1,21 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useMssv } from "../contexts/MssvContext";
 import eventService from "../services/eventService";
 import { toast } from "react-toastify";
 
 const EventDetailPage = () => {
-  const { eventId } = useParams();
+  const location = useLocation();
+  console.log("Current path:", location.pathname); // Debug the current path
+  const extractIdFromPath = () => {
+    const path = location.pathname;
+    const segments = path.split("/");
+    return segments[segments.length - 1];
+  };
+
+  const eventId = extractIdFromPath();
+  console.log("Extracted event ID:", eventId);
+
   const navigate = useNavigate();
   const { mssv, setMssv } = useMssv();
   const [event, setEvent] = useState(null);
@@ -16,16 +26,15 @@ const EventDetailPage = () => {
   const [tempMssv, setTempMssv] = useState("");
   useEffect(() => {
     fetchEventDetails();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId, mssv]);
 
   const fetchEventDetails = async () => {
     try {
       setLoading(true);
       const response = await eventService.getEventById(eventId, mssv);
-      console.log("Event details response:", response); // Debug log
-      setEvent(response.data);
+      setEvent(response);
     } catch (error) {
-      console.error("Error fetching event:", error); // Debug log
       setError(error.message || "Failed to load event details");
     } finally {
       setLoading(false);
