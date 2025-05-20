@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "https://itss2-hustevent.onrender.com/api/v1", // Updated to match the backend URL
+  baseURL: "https://itss2-hustevent-1.onrender.com/api/v1", // Updated to match the backend URL
   // baseURL: 'http://localhost:8080/api/v1', // Updated to match the backend URL
   // baseURL: 'https://83db-2402-800-61c5-a067-3138-ba63-aec0-2168.ngrok-free.app/api/v1', // Updated to match the backend URL
   headers: {

@@ -18,11 +18,11 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }) => {
     endDate: "",
     location: "",
     image: "",
-    type: EVENT_TYPES.TECHNOLOGY, // Default to TECHNOLOGY
-    creatorName: "",
-    creatorPhone: "",
-    creatorEmail: "",
-    maxCapacity: "",
+    type: EVENT_TYPES.TECHNOLOGY,
+    hostName: "",
+    hostPhone: "",
+    hostEmail: "",
+    quantity: "",
   });
 
   const [imageFile, setImageFile] = useState(null);
@@ -57,36 +57,34 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }) => {
     if (!formData.endDate) newErrors.endDate = "End date is required";
     if (!formData.location.trim()) newErrors.location = "Location is required";
     if (!imageFile) newErrors.image = "Image is required";
-    if (!formData.creatorName.trim())
-      newErrors.creatorName = "Creator name is required";
-    if (!formData.creatorPhone.trim())
-      newErrors.creatorPhone = "Creator phone is required";
-    if (!formData.creatorEmail.trim())
-      newErrors.creatorEmail = "Creator email is required";
-    if (!formData.maxCapacity)
-      newErrors.maxCapacity = "Maximum capacity is required";
+    if (!formData.hostName.trim()) newErrors.hostName = "Host name is required";
+    if (!formData.hostPhone.trim())
+      newErrors.hostPhone = "Host phone is required";
+    if (!formData.hostEmail.trim())
+      newErrors.hostEmail = "Host email is required";
+    if (!formData.quantity) newErrors.quantity = "Maximum capacity is required";
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (formData.creatorEmail && !emailRegex.test(formData.creatorEmail)) {
-      newErrors.creatorEmail = "Invalid email format";
+    if (formData.hostEmail && !emailRegex.test(formData.hostEmail)) {
+      newErrors.hostEmail = "Invalid email format";
     }
 
     // Validate phone number format (basic validation)
     const phoneRegex = /^[0-9]{10,11}$/;
     if (
-      formData.creatorPhone &&
-      !phoneRegex.test(formData.creatorPhone.replace(/\D/g, ""))
+      formData.hostPhone &&
+      !phoneRegex.test(formData.hostPhone.replace(/\D/g, ""))
     ) {
-      newErrors.creatorPhone = "Invalid phone number format";
+      newErrors.hostPhone = "Invalid phone number format";
     }
 
-    // Validate max capacity is a positive number
+    // Validate quantity is a positive number
     if (
-      formData.maxCapacity &&
-      (isNaN(formData.maxCapacity) || parseInt(formData.maxCapacity) <= 0)
+      formData.quantity &&
+      (isNaN(formData.quantity) || parseInt(formData.quantity) <= 0)
     ) {
-      newErrors.maxCapacity = "Maximum capacity must be a positive number";
+      newErrors.quantity = "Maximum capacity must be a positive number";
     }
 
     // Validate start date is not in the past
@@ -183,6 +181,7 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }) => {
         endDate: formData.endDate,
         status: determineEventStatus(formData.startDate, formData.endDate),
         type: formData.type,
+        quantity: parseInt(formData.quantity, 10),
       };
       await eventService.createEvent(formattedData);
       setErrors({});
@@ -197,10 +196,10 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }) => {
         location: "",
         image: "",
         type: EVENT_TYPES.TECHNOLOGY,
-        creatorName: "",
-        creatorPhone: "",
-        creatorEmail: "",
-        maxCapacity: "",
+        hostName: "",
+        hostPhone: "",
+        hostEmail: "",
+        quantity: "",
       });
       setImageFile(null);
       setImagePreview(null);
@@ -308,18 +307,18 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }) => {
                   </label>
                   <input
                     type="number"
-                    name="maxCapacity"
-                    value={formData.maxCapacity}
+                    name="quantity"
+                    value={formData.quantity}
                     onChange={handleChange}
                     min="1"
                     className={`w-full p-3 border-2 rounded-lg text-lg font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-700 dark:border-blue-700 dark:text-white transition-all ${
-                      errors.maxCapacity ? "border-red-500" : "border-blue-200"
+                      errors.quantity ? "border-red-500" : "border-blue-200"
                     }`}
                     placeholder="Enter maximum capacity"
                   />
-                  {errors.maxCapacity && (
+                  {errors.quantity && (
                     <p className="text-red-500 text-sm mt-1">
-                      {errors.maxCapacity}
+                      {errors.quantity}
                     </p>
                   )}
                 </div>
@@ -453,41 +452,41 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }) => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-base font-bold text-blue-700 dark:text-white mb-1">
-                    Creator Name <span className="text-red-500">*</span>
+                    Host Name <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
-                    name="creatorName"
-                    value={formData.creatorName}
+                    name="hostName"
+                    value={formData.hostName}
                     onChange={handleChange}
                     className={`w-full p-3 border-2 rounded-lg text-lg font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-700 dark:border-blue-700 dark:text-white transition-all ${
-                      errors.creatorName ? "border-red-500" : "border-blue-200"
+                      errors.hostName ? "border-red-500" : "border-blue-200"
                     }`}
-                    placeholder="Enter creator name"
+                    placeholder="Enter host name"
                   />
-                  {errors.creatorName && (
+                  {errors.hostName && (
                     <p className="text-red-500 text-sm mt-1">
-                      {errors.creatorName}
+                      {errors.hostName}
                     </p>
                   )}
                 </div>
                 <div>
                   <label className="block text-base font-bold text-blue-700 dark:text-white mb-1">
-                    Creator Phone <span className="text-red-500">*</span>
+                    Host Phone <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="tel"
-                    name="creatorPhone"
-                    value={formData.creatorPhone}
+                    name="hostPhone"
+                    value={formData.hostPhone}
                     onChange={handleChange}
                     className={`w-full p-3 border-2 rounded-lg text-lg font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-700 dark:border-blue-700 dark:text-white transition-all ${
-                      errors.creatorPhone ? "border-red-500" : "border-blue-200"
+                      errors.hostPhone ? "border-red-500" : "border-blue-200"
                     }`}
-                    placeholder="Enter creator phone"
+                    placeholder="Enter host phone"
                   />
-                  {errors.creatorPhone && (
+                  {errors.hostPhone && (
                     <p className="text-red-500 text-sm mt-1">
-                      {errors.creatorPhone}
+                      {errors.hostPhone}
                     </p>
                   )}
                 </div>
@@ -495,21 +494,21 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }) => {
 
               <div>
                 <label className="block text-base font-bold text-blue-700 dark:text-white mb-1">
-                  Creator Email <span className="text-red-500">*</span>
+                  Host Email <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="email"
-                  name="creatorEmail"
-                  value={formData.creatorEmail}
+                  name="hostEmail"
+                  value={formData.hostEmail}
                   onChange={handleChange}
                   className={`w-full p-3 border-2 rounded-lg text-lg font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-700 dark:border-blue-700 dark:text-white transition-all ${
-                    errors.creatorEmail ? "border-red-500" : "border-blue-200"
+                    errors.hostEmail ? "border-red-500" : "border-blue-200"
                   }`}
-                  placeholder="Enter creator email"
+                  placeholder="Enter host email"
                 />
-                {errors.creatorEmail && (
+                {errors.hostEmail && (
                   <p className="text-red-500 text-sm mt-1">
-                    {errors.creatorEmail}
+                    {errors.hostEmail}
                   </p>
                 )}
               </div>
