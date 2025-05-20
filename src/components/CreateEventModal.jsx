@@ -164,49 +164,50 @@ const CreateEventModal = ({ isOpen, onClose, onEventCreated }) => {
     const validationErrors = validateForm();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
-      toast.error("Please fill in all required fields correctly.");
       return;
     }
-    setIsSubmitting(true);
-    try {
-      let imageUrl = "";
-      if (imageFile) {
-        imageUrl = await eventService.uploadImage(imageFile);
-        console.log(imageUrl);
+    if (validationErrors) {
+      setIsSubmitting(true);
+      try {
+        let imageUrl = "";
+        if (imageFile) {
+          imageUrl = await eventService.uploadImage(imageFile);
+          console.log(imageUrl);
+        }
+        const formattedData = {
+          ...formData,
+          image: imageUrl,
+          startDate: formData.startDate,
+          endDate: formData.endDate,
+          status: determineEventStatus(formData.startDate, formData.endDate),
+          type: formData.type,
+          quantity: parseInt(formData.quantity, 10),
+        };
+        await eventService.createEvent(formattedData);
+        setErrors({});
+        toast.success("Event created successfully!");
+        if (onEventCreated) onEventCreated();
+        onClose();
+        setFormData({
+          name: "",
+          description: "",
+          startDate: "",
+          endDate: "",
+          location: "",
+          image: "",
+          type: EVENT_TYPES.TECHNOLOGY,
+          hostName: "",
+          hostPhone: "",
+          hostEmail: "",
+          quantity: "",
+        });
+        setImageFile(null);
+        setImagePreview(null);
+      } catch (error) {
+        toast.error(error.message || "Failed to create event.");
+      } finally {
+        setIsSubmitting(false);
       }
-      const formattedData = {
-        ...formData,
-        image: imageUrl,
-        startDate: formData.startDate,
-        endDate: formData.endDate,
-        status: determineEventStatus(formData.startDate, formData.endDate),
-        type: formData.type,
-        quantity: parseInt(formData.quantity, 10),
-      };
-      await eventService.createEvent(formattedData);
-      setErrors({});
-      toast.success("Event created successfully!");
-      if (onEventCreated) onEventCreated();
-      onClose();
-      setFormData({
-        name: "",
-        description: "",
-        startDate: "",
-        endDate: "",
-        location: "",
-        image: "",
-        type: EVENT_TYPES.TECHNOLOGY,
-        hostName: "",
-        hostPhone: "",
-        hostEmail: "",
-        quantity: "",
-      });
-      setImageFile(null);
-      setImagePreview(null);
-    } catch (error) {
-      toast.error(error.message || "Failed to create event.");
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
