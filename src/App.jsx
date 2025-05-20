@@ -3,6 +3,7 @@ import { MssvProvider } from "./contexts/MssvContext";
 import HomePage from "./pages/HomePage";
 import EventDetailPage from "./pages/EventDetailPage";
 import MainLayout from "./layouts/MainLayout";
+import ScrollToTop from "./components/ScrollToTop";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./App.css";
@@ -11,6 +12,7 @@ function App() {
   return (
     <MssvProvider>
       <Router>
+        <ScrollToTop />
         <ToastContainer
           position="top-right"
           autoClose={3000}

@@ -2,6 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom animations and transitions */
+@layer utilities {
+  .transition-smooth {
+    @apply transition-all duration-300 ease-in-out;
+  }
+
+  .card-enter {
+    @apply opacity-0 transform translate-y-6;
+  }
+
+  .card-enter-active {
+    @apply opacity-100 transform translate-y-0 transition-smooth;
+  }
+}
+
 /* Original CSS styles */
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;

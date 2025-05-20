@@ -68,12 +68,6 @@ const Navbar = ({ onCreateEvent }) => {
             >
               Home
             </Link>
-            <Link
-              to="/about"
-              className={`${isActive("/about")} transition-colors duration-300 font-semibold px-3 py-2 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-800`}
-            >
-              About
-            </Link>
             <div className="relative">
               <input
                 type="text"
@@ -83,12 +77,6 @@ const Navbar = ({ onCreateEvent }) => {
                 className="w-48 px-4 py-2 rounded-lg border-2 border-blue-200 dark:border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-700 dark:text-white text-sm shadow-sm transition-all"
               />
             </div>
-            <button
-              onClick={onCreateEvent}
-              className="ml-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-400 text-white rounded-lg shadow-md hover:scale-105 hover:from-blue-700 hover:to-blue-500 transition-all font-bold"
-            >
-              Create Event
-            </button>
           </div>
 
           {/* Mobile Menu Button */}
