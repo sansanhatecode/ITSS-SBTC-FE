@@ -24,8 +24,25 @@ const EventCard = ({ event: initialEvent, status, statusLabel }) => {
   const [isRegistering, setIsRegistering] = useState(false);
   const [showMssvModal, setShowMssvModal] = useState(false);
   const [tempMssv, setTempMssv] = useState("");
+  const [debouncedMssv, setDebouncedMssv] = useState("");
   const { mssv, setMssv } = useMssv();
   const [event, setEvent] = useState(initialEvent);
+
+  // Debounce tempMssv changes
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedMssv(tempMssv);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [tempMssv]);
+
+  // Use debounced value for API calls
+  useEffect(() => {
+    if (debouncedMssv) {
+      fetchEventDetails(debouncedMssv);
+    }
+  }, [debouncedMssv]);
 
   // Update event when initialEvent changes
   useEffect(() => {
@@ -62,7 +79,12 @@ const EventCard = ({ event: initialEvent, status, statusLabel }) => {
     try {
       setIsRegistering(true);
       await eventService.registerEvent(mssv, event.id);
-      await fetchEventDetails(mssv);
+      // Update event details after successful registration
+      const response = await eventService.getEventById(event.id, mssv);
+      setEvent({
+        ...response.data,
+        applicationStatus: true, // Force set to true after successful registration
+      });
       toast.success(`Successfully registered for "${event.name}"!`, {
         theme: "colored",
       });
@@ -82,7 +104,12 @@ const EventCard = ({ event: initialEvent, status, statusLabel }) => {
       setIsRegistering(true);
       try {
         await eventService.registerEvent(tempMssv, event.id);
-        await fetchEventDetails(tempMssv);
+        // Update event details after successful registration
+        const response = await eventService.getEventById(event.id, tempMssv);
+        setEvent({
+          ...response.data,
+          applicationStatus: true, // Force set to true after successful registration
+        });
         toast.success(`Successfully registered for "${event.name}"!`, {
           theme: "colored",
         });
