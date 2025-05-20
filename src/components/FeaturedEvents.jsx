@@ -177,27 +177,14 @@ const FeaturedEvents = () => {
             <button
               key={index}
               onClick={() => setCurrentIndex(index)}
-              className={`w-5 h-5 flex items-center justify-center rounded-full border-2 transition-all duration-500 focus:outline-none p-0
-                ${
-                  index === currentIndex
-                    ? "border-blue-400 bg-gradient-to-tr from-blue-400 to-blue-600 shadow-lg scale-125 ring-2 ring-blue-200"
-                    : "border-gray-300 bg-white/70 hover:bg-blue-100 hover:border-blue-400 shadow"
-                }
-              `}
-              style={{
-                boxShadow:
-                  index === currentIndex
-                    ? "0 2px 12px 0 rgba(59,130,246,0.25)"
-                    : undefined,
-              }}
+              className={`w-auto h-3 flex items-center justify-center bg-transparent p-0 transition-all duration-500 focus:outline-none shadow-none border-none outline-none`}
+              style={{ background: "none", border: "none", outline: "none" }}
               aria-label={`Go to event ${index + 1}`}
             >
               <span
-                className={`block w-3 h-3 rounded-full transition-all duration-500 ${
-                  index === currentIndex
-                    ? "bg-white shadow-md scale-110"
-                    : "bg-gray-400"
-                }`}
+                className={`block transition-all duration-500 bg-white rounded-full
+        ${index === currentIndex ? "w-9 h-3" : "w-3 h-3"}
+      `}
               ></span>
             </button>
           ))}

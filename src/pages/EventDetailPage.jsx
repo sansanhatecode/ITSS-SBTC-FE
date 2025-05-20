@@ -6,7 +6,6 @@ import { toast } from "react-toastify";
 
 const EventDetailPage = () => {
   const location = useLocation();
-  console.log("Current path:", location.pathname); // Debug the current path
   const extractIdFromPath = () => {
     const path = location.pathname;
     const segments = path.split("/");
@@ -14,7 +13,6 @@ const EventDetailPage = () => {
   };
 
   const eventId = extractIdFromPath();
-  console.log("Extracted event ID:", eventId);
 
   const navigate = useNavigate();
   const { mssv, setMssv } = useMssv();
@@ -24,6 +22,7 @@ const EventDetailPage = () => {
   const [isRegistering, setIsRegistering] = useState(false);
   const [showMssvModal, setShowMssvModal] = useState(false);
   const [tempMssv, setTempMssv] = useState("");
+
   useEffect(() => {
     fetchEventDetails();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -50,7 +49,7 @@ const EventDetailPage = () => {
     try {
       setIsRegistering(true);
       await eventService.registerEvent(mssv, eventId);
-      await fetchEventDetails();
+      await fetchEventDetails(); // Refetch to update registration status
       toast.success("Successfully registered for the event!");
     } catch (error) {
       setError(error.message || "Failed to register for event");
@@ -62,12 +61,13 @@ const EventDetailPage = () => {
 
   const handleMssvSubmit = async () => {
     if (tempMssv) {
-      setMssv(tempMssv);
+      setMssv(tempMssv); // Save MSSV to context and localStorage
       setShowMssvModal(false);
+      // Proceed with registration immediately after MSSV is set
       setIsRegistering(true);
       try {
         await eventService.registerEvent(tempMssv, eventId);
-        await fetchEventDetails();
+        await fetchEventDetails(); // Refetch to update UI with new MSSV
         toast.success("Successfully registered for the event!");
       } catch (error) {
         setError(error.message || "Failed to register for event");
@@ -80,21 +80,21 @@ const EventDetailPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600"></div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center">
-        <p className="text-red-500 mb-4 animate-[fadeIn_0.5s_ease-out_forwards]">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
+        <p className="text-red-600 dark:text-red-400 text-xl mb-6 animate-[fadeIn_0.5s_ease-out_forwards] text-center">
           {error}
         </p>
         <button
           onClick={() => navigate("/")}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 opacity-0 animate-[fadeIn_0.5s_ease-out_0.2s_forwards]"
+          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-300 shadow-md hover:shadow-lg opacity-0 animate-[fadeIn_0.5s_ease-out_0.2s_forwards]"
         >
           Back to Home
         </button>
@@ -104,13 +104,13 @@ const EventDetailPage = () => {
 
   if (!event) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center">
-        <p className="text-gray-500 mb-4 animate-[fadeIn_0.5s_ease-out_forwards]">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
+        <p className="text-gray-600 dark:text-gray-400 text-xl mb-6 animate-[fadeIn_0.5s_ease-out_forwards]">
           Event not found
         </p>
         <button
           onClick={() => navigate("/")}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 opacity-0 animate-[fadeIn_0.5s_ease-out_0.2s_forwards]"
+          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-300 shadow-md hover:shadow-lg opacity-0 animate-[fadeIn_0.5s_ease-out_0.2s_forwards]"
         >
           Back to Home
         </button>
@@ -124,39 +124,44 @@ const EventDetailPage = () => {
     const endDate = new Date(event.endDate);
 
     if (endDate < now) {
-      return { text: "Past", color: "bg-gray-500" };
+      return { text: "Past", color: "bg-gray-500 dark:bg-gray-600" };
     } else if (startDate > now) {
-      return { text: "Upcoming", color: "bg-blue-500" };
+      return { text: "Upcoming", color: "bg-blue-500 dark:bg-blue-600" };
     }
-    return { text: "Ongoing", color: "bg-green-500" };
+    return { text: "Ongoing", color: "bg-green-500 dark:bg-green-600" };
   };
 
   const status = getEventStatus();
 
   return (
-    <div className="container mx-auto px-4 py-8 mt-20 overflow-hidden">
-      <div className="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-xl overflow-hidden transform transition-all duration-500 hover:shadow-2xl opacity-0 animate-[fadeIn_0.5s_ease-out_forwards]">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-16 sm:mt-20 overflow-hidden">
+      <div className="max-w-5xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-shadow duration-500 opacity-0 animate-[fadeIn_0.5s_ease-out_forwards]">
         <div className="relative overflow-hidden group">
           <img
-            src={event.image}
+            src={
+              event.image ||
+              "https://via.placeholder.com/1200x400.png?text=Event+Image"
+            } // Fallback image
             alt={event.name}
-            className="w-full h-80 object-cover transition-transform duration-700 group-hover:scale-110 filter group-hover:brightness-110"
+            className="w-full h-72 sm:h-80 md:h-96 object-cover transition-transform duration-700 group-hover:scale-105 filter group-hover:brightness-105"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent transform transition-all duration-500 group-hover:opacity-80"></div>
-          <h1 className="absolute bottom-6 left-6 text-4xl font-bold text-white drop-shadow-lg opacity-0 animate-[fadeInRight_0.7s_ease-out_0.2s_forwards] transition-all duration-300 group-hover:translate-x-2">
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent transition-opacity duration-500 group-hover:opacity-90"></div>
+          <h1 className="absolute bottom-6 sm:bottom-8 left-6 sm:left-8 text-3xl sm:text-4xl lg:text-5xl font-bold text-white drop-shadow-xl opacity-0 animate-[fadeInRight_0.7s_ease-out_0.2s_forwards] transition-all duration-300 group-hover:translate-x-2">
             {event.name}
           </h1>
-          <div className="absolute top-6 right-6 flex flex-col gap-2">
+          <div className="absolute top-4 sm:top-6 right-4 sm:right-6 flex flex-col items-end gap-2 sm:gap-3">
             <span
-              className={`${status.color} text-white text-sm font-bold px-4 py-1.5 rounded-full shadow-md backdrop-blur-sm bg-opacity-90 transition-all duration-300 hover:scale-105 opacity-0 animate-[fadeInLeft_0.7s_ease-out_0.3s_forwards] group-hover:translate-x-1`}
+              className={`${status.color} text-white text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 rounded-full shadow-lg backdrop-blur-md bg-opacity-80 transition-all duration-300 hover:scale-105 opacity-0 animate-[fadeInLeft_0.7s_ease-out_0.3s_forwards] group-hover:translate-x-0`}
             >
               {status.text}
             </span>
             {mssv && event.applicationStatus !== undefined && (
               <span
                 className={`${
-                  event.applicationStatus ? "bg-green-500" : "bg-yellow-500"
-                } text-white text-sm font-bold px-4 py-1.5 rounded-full shadow-md backdrop-blur-sm bg-opacity-90 transition-all duration-300 hover:scale-105 opacity-0 animate-[fadeInLeft_0.7s_ease-out_0.5s_forwards] group-hover:-translate-x-1`}
+                  event.applicationStatus
+                    ? "bg-green-500 dark:bg-green-600"
+                    : "bg-yellow-500 dark:bg-yellow-600"
+                } text-white text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 rounded-full shadow-lg backdrop-blur-md bg-opacity-80 transition-all duration-300 hover:scale-105 opacity-0 animate-[fadeInLeft_0.7s_ease-out_0.5s_forwards] group-hover:-translate-x-0`}
               >
                 {event.applicationStatus ? "Registered" : "Not Registered"}
               </span>
@@ -164,87 +169,98 @@ const EventDetailPage = () => {
           </div>
         </div>
 
-        <div className="p-8">
-          <div className="flex flex-col md:flex-row gap-8 mb-8 opacity-0 animate-[fadeIn_0.8s_ease-out_0.4s_forwards]">
-            <div className="md:w-1/2 space-y-5 opacity-0 animate-[fadeInLeft_0.8s_ease-out_0.6s_forwards]">
-              <div className="flex items-center text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg shadow-sm transform transition-all duration-300 hover:scale-102 hover:shadow-md hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-l-4 hover:border-blue-500 opacity-0 animate-[fadeIn_0.5s_ease-out_0.7s_forwards]">
-                <svg
-                  className="w-6 h-6 mr-3 text-blue-600 dark:text-blue-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+        <div className="p-6 sm:p-8 lg:p-10">
+          <div className="flex flex-col lg:flex-row gap-8 lg:gap-10 mb-8 opacity-0 animate-[fadeIn_0.8s_ease-out_0.4s_forwards]">
+            <div className="lg:w-2/5 space-y-5 opacity-0 animate-[fadeInLeft_0.8s_ease-out_0.6s_forwards]">
+              {/* Info Cards - render từng card, không cần div bọc ngoài */}
+              {[
+                {
+                  icon: (
+                    <svg
+                      className="w-6 h-6 mr-3.5 text-blue-600 dark:text-blue-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
+                  ),
+                  value: `${new Date(
+                    event.startDate
+                  ).toLocaleDateString()} - ${new Date(
+                    event.endDate
+                  ).toLocaleDateString()}`,
+                  color: "blue",
+                  delay: "0.7s",
+                },
+                {
+                  icon: (
+                    <svg
+                      className="w-6 h-6 mr-3.5 text-red-600 dark:text-red-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                    </svg>
+                  ),
+                  value: event.location,
+                  color: "red",
+                  delay: "0.9s",
+                },
+                {
+                  icon: (
+                    <svg
+                      className="w-6 h-6 mr-3.5 text-purple-600 dark:text-purple-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                      />
+                    </svg>
+                  ),
+                  value: event.type,
+                  color: "purple",
+                  delay: "1.1s",
+                },
+              ].map((item, index) => (
+                <div
+                  key={index}
+                  className={`flex items-center text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/60 min-h-[44px] p-3 rounded-xl shadow-sm transition-all duration-300 hover:scale-[1.02] hover:shadow-md hover:border-l-4 hover:border-${item.color}-500 opacity-0 animate-[fadeIn_0.5s_ease-out_forwards]`}
+                  style={{ animationDelay: item.delay }}
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                </svg>
-                <div>
-                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Date
-                  </p>
-                  <p className="font-medium">
-                    {new Date(event.startDate).toLocaleDateString()} -{" "}
-                    {new Date(event.endDate).toLocaleDateString()}
-                  </p>
+                  {item.icon}
+                  <span className="font-semibold text-sm sm:text-base break-all ml-2 text-left">
+                    {item.value}
+                  </span>
                 </div>
-              </div>
+              ))}
 
-              <div className="flex items-center text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg shadow-sm transform transition-all duration-300 hover:scale-102 hover:shadow-md hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-l-4 hover:border-red-500 opacity-0 animate-[fadeIn_0.5s_ease-out_0.9s_forwards]">
+              {/* Participants Info Card - không cần div bọc ngoài */}
+              <div className="flex items-center text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/60 min-h-[44px] p-3 rounded-xl shadow-sm transition-all duration-300 hover:scale-[1.02] hover:shadow-md hover:border-l-4 hover:border-indigo-500 opacity-0 animate-[fadeIn_0.5s_ease-out_1.3s_forwards]">
                 <svg
-                  className="w-6 h-6 mr-3 text-red-600 dark:text-red-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                </svg>
-                <div>
-                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Location
-                  </p>
-                  <p className="font-medium">{event.location}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg shadow-sm transform transition-all duration-300 hover:scale-102 hover:shadow-md hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:border-l-4 hover:border-purple-500 opacity-0 animate-[fadeIn_0.5s_ease-out_1.1s_forwards]">
-                <svg
-                  className="w-6 h-6 mr-3 text-purple-600 dark:text-purple-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
-                  />
-                </svg>
-                <div>
-                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Event Type
-                  </p>
-                  <p className="font-medium">{event.type}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg shadow-sm transform transition-all duration-300 hover:scale-102 hover:shadow-md hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:border-l-4 hover:border-indigo-500 opacity-0 animate-[fadeIn_0.5s_ease-out_1.3s_forwards]">
-                <svg
-                  className="w-6 h-6 mr-3 text-indigo-600 dark:text-indigo-400"
+                  className="w-6 h-6 mr-3.5 text-indigo-600 dark:text-indigo-400 flex-shrink-0 mt-0.5"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -256,42 +272,141 @@ const EventDetailPage = () => {
                     d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
                   />
                 </svg>
-                <div>
-                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Participants
-                  </p>
-                  <p className="font-medium">
-                    {event.numberOfMssv === null ? (
-                      <span className="text-green-600 dark:text-green-400 flex items-center gap-1">
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
-                          />
-                        </svg>
-                        Be the first one to join!
-                      </span>
-                    ) : (
-                      <span className="flex items-center">
-                        {event.numberOfMssv} registered
-                      </span>
-                    )}
-                  </p>
-                </div>
+                <span className="font-semibold text-sm sm:text-base break-all ml-2 text-left w-full">
+                  {event.numberOfMssv === null || event.numberOfMssv === 0 ? (
+                    <span className="text-green-600 dark:text-green-400 flex items-center gap-1.5">
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                        />
+                      </svg>
+                      Be the first to join!
+                    </span>
+                  ) : (
+                    <span className="flex flex-col sm:flex-row sm:items-center">
+                      <span>{event.numberOfMssv} registered</span>
+                      {event.quantity > 0 &&
+                        event.quantity - event.numberOfMssv >= 0 && (
+                          <span className="ml-0 sm:ml-2 text-green-600 dark:text-green-400 text-xs sm:text-sm font-medium">
+                            ({event.quantity - event.numberOfMssv} slots
+                            remaining)
+                          </span>
+                        )}
+                      {event.quantity > 0 &&
+                        event.quantity - event.numberOfMssv < 0 && (
+                          <span className="ml-0 sm:ml-2 text-yellow-500 dark:text-yellow-400 text-xs sm:text-sm font-medium">
+                            (Fully booked, on waiting list)
+                          </span>
+                        )}
+                      {event.quantity === 0 && (
+                        <span className="ml-0 sm:ml-2 text-blue-500 dark:text-blue-400 text-xs sm:text-sm font-medium">
+                          (Unlimited slots)
+                        </span>
+                      )}
+                    </span>
+                  )}
+                </span>
+              </div>
+
+              <div className="mt-8 opacity-0 animate-[fadeIn_0.5s_ease-out_1.5s_forwards]">
+                <h4 className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-gray-100 mb-4 flex items-center">
+                  <svg
+                    className="w-5 h-5 mr-2.5 text-orange-500"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
+                  </svg>
+                  Host Information
+                </h4>
+                {[
+                  {
+                    icon: (
+                      <svg
+                        className="w-6 h-6 mr-3.5 text-amber-600 dark:text-amber-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                        />
+                      </svg>
+                    ),
+                    value: event.hostName || "Not specified",
+                    color: "amber",
+                    delay: "1.7s",
+                  },
+                  {
+                    icon: (
+                      <svg
+                        className="w-6 h-6 mr-3.5 text-green-600 dark:text-green-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+                        />
+                      </svg>
+                    ),
+                    value: event.hostPhone || "Not provided",
+                    color: "green",
+                    delay: "1.9s",
+                  },
+                  {
+                    icon: (
+                      <svg
+                        className="w-6 h-6 mr-3.5 text-blue-600 dark:text-blue-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                        />
+                      </svg>
+                    ),
+                    value: event.hostEmail || "Not provided",
+                    color: "blue",
+                    delay: "2.1s",
+                  },
+                ].map((item, index) => (
+                  <div
+                    key={index}
+                    className={`flex items-center text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/60 min-h-[44px] p-3 rounded-xl shadow-sm transition-all duration-300 hover:scale-[1.02] hover:shadow-md hover:border-l-4 hover:border-${item.color}-500 mt-3 opacity-0 animate-[fadeIn_0.5s_ease-out_forwards]`}
+                    style={{ animationDelay: item.delay }}
+                  >
+                    {item.icon}
+                    <span className="font-semibold text-sm sm:text-base break-all ml-2 text-left">
+                      {item.value}
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
 
-            <div className="md:w-1/2 opacity-0 animate-[fadeInRight_0.8s_ease-out_0.8s_forwards]">
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center relative">
+            <div className="lg:w-3/5 opacity-0 animate-[fadeInRight_0.8s_ease-out_0.8s_forwards] group">
+              <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center relative">
                 <svg
-                  className="w-5 h-5 mr-2 text-blue-600 animate-bounce-slight"
+                  className="w-5 h-5 sm:w-6 sm:h-6 mr-2 text-blue-600 dark:text-blue-400"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -303,32 +418,32 @@ const EventDetailPage = () => {
                 </svg>
                 <span className="relative">
                   About this event
-                  <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-gradient-to-r from-blue-600 to-blue-300 transform scale-x-0 transition-transform origin-left group-hover:scale-x-100 animate-shimmer bg-[length:200%_100%]"></span>
+                  <span className="absolute -bottom-1.5 left-0 w-full h-0.5 bg-gradient-to-r from-blue-500 to-blue-300 transform scale-x-0 transition-transform origin-left group-hover:scale-x-100 duration-500 animate-underline-shimmer bg-[length:200%_100%]"></span>
                 </span>
               </h3>
               <div
-                className="bg-gray-50 dark:bg-gray-700/30 p-4 rounded-lg shadow-inner transition-all duration-300 hover:shadow-lg hover:bg-blue-50/50 dark:hover:bg-blue-900/30 group"
+                className="bg-gray-50 dark:bg-gray-700/50 p-5 sm:p-6 rounded-xl shadow-inner transition-all duration-300 hover:shadow-lg hover:bg-blue-50/30 dark:hover:bg-blue-900/30"
                 style={{
                   backgroundImage:
-                    "linear-gradient(110deg, transparent 0%, transparent 40%, rgba(0,0,255,0.05) 50%, transparent 60%, transparent 100%)",
-                  backgroundSize: "200% 100%",
-                  animation: "shimmer 3s infinite linear",
+                    "linear-gradient(110deg, transparent 10%, rgba(var(--color-blue-500-rgb), 0.02) 30%, rgba(var(--color-blue-500-rgb), 0.04) 50%, rgba(var(--color-blue-500-rgb), 0.02) 70%, transparent 90%)",
+                  backgroundSize: "300% 100%",
+                  animation: "shimmer-bg 6s infinite linear",
                 }}
               >
-                <p className="text-gray-700 dark:text-gray-300 leading-relaxed transform transition-transform duration-300 group-hover:scale-[1.01]">
+                <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-sm sm:text-base whitespace-pre-wrap">
                   {event.description}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-8 border-t pt-6 border-gray-200 dark:border-gray-700 opacity-0 animate-[fadeIn_0.8s_ease-out_1s_forwards]">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-8 sm:mt-12 border-t pt-6 sm:pt-8 border-gray-200 dark:border-gray-700 opacity-0 animate-[fadeIn_0.8s_ease-out_1s_forwards]">
             <button
               onClick={() => navigate("/")}
-              className="px-6 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-lg font-medium transition-all duration-300 flex items-center hover:shadow-md transform hover:-translate-x-1"
+              className="group px-6 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600/80 text-gray-800 dark:text-gray-200 rounded-lg font-medium transition-all duration-300 flex items-center shadow-sm hover:shadow-md transform hover:-translate-x-1 border border-gray-300 dark:border-gray-600"
             >
               <svg
-                className="w-5 h-5 mr-2 transition-transform duration-300 group-hover:translate-x-1"
+                className="w-5 h-5 mr-2 transition-transform duration-300 group-hover:-translate-x-0.5"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -346,18 +461,24 @@ const EventDetailPage = () => {
             {status.text !== "Past" && !event.applicationStatus && (
               <button
                 onClick={handleRegister}
-                disabled={isRegistering}
-                className={`px-6 py-2.5 ${
-                  isRegistering
-                    ? "bg-gray-400 cursor-not-allowed"
+                disabled={
+                  isRegistering ||
+                  (event.quantity > 0 &&
+                    event.quantity - (event.numberOfMssv || 0) <= 0)
+                }
+                className={`px-6 py-3 ${
+                  isRegistering ||
+                  (event.quantity > 0 &&
+                    event.quantity - (event.numberOfMssv || 0) <= 0)
+                    ? "bg-gray-400 dark:bg-gray-500 cursor-not-allowed"
                     : "bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
-                } text-white font-medium rounded-lg shadow-md hover:shadow-xl transition-all duration-300 flex items-center transform hover:scale-105 hover:translate-x-1 relative overflow-hidden group`}
+                } text-white font-semibold rounded-lg shadow-md hover:shadow-xl transition-all duration-300 flex items-center transform hover:scale-105 relative overflow-hidden group`}
               >
-                <span className="absolute top-0 left-0 w-full h-full bg-white/20 transform -skew-x-45 transition-all duration-500 ease-out -translate-x-full group-hover:translate-x-full"></span>
+                <span className="absolute top-0 left-0 w-full h-full bg-white/20 transform -skew-x-45 transition-all duration-500 ease-out -translate-x-full group-hover:translate-x-full group-focus:translate-x-full"></span>
                 {isRegistering ? (
                   <>
                     <svg
-                      className="animate-spin -ml-1 mr-2 h-5 w-5 text-white"
+                      className="animate-spin -ml-1 mr-2.5 h-5 w-5 text-white"
                       xmlns="http://www.w3.org/2000/svg"
                       fill="none"
                       viewBox="0 0 24 24"
@@ -378,10 +499,29 @@ const EventDetailPage = () => {
                     </svg>
                     Registering...
                   </>
+                ) : event.quantity > 0 &&
+                  event.quantity - (event.numberOfMssv || 0) <= 0 ? (
+                  <>
+                    <svg
+                      className="w-5 h-5 mr-2.5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      {" "}
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      ></path>
+                    </svg>
+                    Fully Booked
+                  </>
                 ) : (
                   <>
                     <svg
-                      className="w-5 h-5 mr-2"
+                      className="w-5 h-5 mr-2.5"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -398,11 +538,26 @@ const EventDetailPage = () => {
                 )}
               </button>
             )}
+            {status.text !== "Past" && event.applicationStatus && (
+              <div className="px-6 py-3 bg-gradient-to-r from-blue-500 to-sky-600 text-white font-semibold rounded-lg shadow-md flex items-center gap-2">
+                <svg
+                  className="w-5 h-5"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                You're Registered!
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* MSSV Modal */}
       {showMssvModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 animate-[fadeIn_0.3s_ease-out_forwards]">
           <div
@@ -502,55 +657,32 @@ const EventDetailPage = () => {
       )}
 
       <style jsx>{`
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
+        :root {
+          --color-blue-500-rgb: 59, 130, 246; /* For Tailwind blue-500 */
+        }
+        @keyframes shimmer-bg {
+          /* Renamed from shimmer to avoid conflict if you have other shimmers */
+          0% {
+            background-position: -300% 0;
           }
-          to {
-            opacity: 1;
+          100% {
+            background-position: 300% 0;
           }
         }
-        @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+        .animate-shimmer-bg {
+          /* Custom class for this specific shimmer if needed outside style prop */
+          background-image: linear-gradient(
+            110deg,
+            transparent 10%,
+            rgba(var(--color-blue-500-rgb), 0.02) 30%,
+            rgba(var(--color-blue-500-rgb), 0.04) 50%,
+            rgba(var(--color-blue-500-rgb), 0.02) 70%,
+            transparent 90%
+          );
+          background-size: 300% 100%;
+          animation: shimmer-bg 6s infinite linear;
         }
-        @keyframes fadeInLeft {
-          from {
-            opacity: 0;
-            transform: translateX(-20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-        @keyframes fadeInRight {
-          from {
-            opacity: 0;
-            transform: translateX(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-        @keyframes scaleIn {
-          from {
-            opacity: 0;
-            transform: scale(0.95);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1);
-          }
-        }
-        @keyframes shimmer {
+        @keyframes underline-shimmer {
           0% {
             background-position: -200% 0;
           }
@@ -558,17 +690,15 @@ const EventDetailPage = () => {
             background-position: 200% 0;
           }
         }
-        .animate-shimmer {
+        .animate-underline-shimmer {
           background-image: linear-gradient(
-            110deg,
+            to right,
             transparent 0%,
-            transparent 40%,
-            rgba(0, 0, 255, 0.05) 50%,
-            transparent 60%,
+            theme("colors.blue.400") 50%,
             transparent 100%
           );
           background-size: 200% 100%;
-          animation: shimmer 3s infinite linear;
+          animation: underline-shimmer 2s infinite linear;
         }
       `}</style>
     </div>

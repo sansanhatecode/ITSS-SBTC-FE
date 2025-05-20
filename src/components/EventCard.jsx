@@ -202,7 +202,7 @@ const EventCard = ({ event: initialEvent, status, statusLabel }) => {
                 d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
               />
             </svg>
-            <span className="font-semibold text-blue-800 dark:text-blue-300">
+            <span className="font-semibold text-blue-800 dark:text-blue-300 text-left truncate max-w-full block">
               {event.location}
             </span>
           </div>
