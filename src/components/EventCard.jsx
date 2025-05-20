@@ -269,7 +269,7 @@ const EventCard = ({ event: initialEvent, status, statusLabel }) => {
               <div className="bg-blue-50 dark:bg-blue-900/30 px-4 py-2 rounded-xl border border-blue-100 dark:border-blue-800/50 mb-3">
                 <h4 className="text-blue-600 dark:text-blue-400 font-semibold text-center">"{event.name}"</h4>
               </div>
-              <p className="text-gray-500 dark:text-gray-300 text-sm mb-2 text-center">Please enter your student ID (MSSV) to register for this event.</p>
+              <p className="text-gray-500 dark:text-gray-300 text-sm mb-2 text-center">Please enter your Student ID (MSSV) to register for this event.</p>
             </div>
             <input
               type="text"
