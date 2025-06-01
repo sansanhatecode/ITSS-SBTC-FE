@@ -80,10 +80,10 @@ const EventCard = ({ event: initialEvent, status, statusLabel }) => {
       setIsRegistering(true);
       await eventService.registerEvent(mssv, event.id);
       // Update event details after successful registration
-      const response = await eventService.getEventById(event.id, mssv);
+      await eventService.getEventById(event.id, mssv);
       setEvent({
-        ...response.data,
-        applicationStatus: true, // Force set to true after successful registration
+        ...event,
+        applicationStatus: true, 
       });
       toast.success(`Successfully registered for "${event.name}"!`, {
         theme: "colored",
